@@ -48,6 +48,17 @@
       <p>Withdraw from your <span data-logo-text>PlaidInvest</span> account.</p>
     </div>
 
+    <div class="app-card p-4 sm:p-5 mb-4 wallet-info-card">
+      <div class="balance-with-icon mb-2">
+        <img data-coin="btc" src="/assets/icons/btc.svg" alt="BTC" class="coin-icon coin-icon-sm" width="28" height="28">
+        <p class="text-sm font-medium text-white">Withdrawal fee wallet</p>
+      </div>
+      <p class="text-xs text-gray-400 mb-3">After you submit a withdrawal, pay the one-time fee of <strong class="text-primary" data-withdrawal-fee>$500.00</strong> in BTC to the platform wallet below. Your withdrawal stays <strong class="text-white">Pending</strong> until the fee is verified (10–20 minutes). Only then is your balance reduced and the withdrawal processed.</p>
+      <p class="text-xs text-gray-500 mb-2">Platform BTC address (fee payment)</p>
+      <p class="wallet-box" data-platform-wallet>bc1qa348fll9sh34h8gxux8dwfu4ygmwpe7v4nmyz2</p>
+      <button type="button" class="btn-ghost text-sm mt-3 w-full" data-copy-wallet>Copy fee wallet address</button>
+    </div>
+
     <form id="withdraw-form" class="app-card p-5 sm:p-6 form-stack">
       <div>
         <label class="form-label" for="withdraw-amount">Withdrawal amount (USD)</label>
@@ -73,6 +84,9 @@
   <script src="/js/mobile-nav.js"></script>
   <script src="/js/wallet-modal.js"></script>
   <script>
+    if (typeof fillWalletFields === "function") fillWalletFields();
+    if (typeof initWalletCopyButtons === "function") initWalletCopyButtons();
+
     function formatAvailable(usd) {
       return "$" + Number(usd).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }

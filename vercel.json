@@ -3,6 +3,12 @@
   "buildCommand": "python3 scripts/generate-env.py",
   "outputDirectory": ".",
   "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "plaidinvest.online" }],
+      "destination": "https://www.plaidinvest.online/:path*",
+      "permanent": true
+    },
     { "source": "/dashboard", "destination": "/dashboard.html", "permanent": true },
     { "source": "/dashboard/", "destination": "/dashboard.html", "permanent": true },
     { "source": "/login", "destination": "/login.html", "permanent": false }

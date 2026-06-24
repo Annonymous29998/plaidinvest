@@ -32,7 +32,13 @@
 }
 
 .site-nav-actions .site-nav-auth {
-  display: none !important;
+  display: none;
+}
+
+.site-nav-actions .site-nav-auth:not(.hidden) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .site-nav-links {
@@ -44,10 +50,6 @@
 @media (min-width: 768px) {
   .site-nav-links {
     display: flex;
-  }
-
-  .site-nav-actions .site-nav-auth {
-    display: inline-flex !important;
   }
 
   .mobile-menu-btn {

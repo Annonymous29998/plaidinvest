@@ -139,4 +139,34 @@
       fn();
     }
   });
+
+  function copyWalletText(text, btn) {
+    if (!text) return;
+    function onCopied() {
+      if (!btn) return;
+      var original = btn.textContent;
+      btn.textContent = "Copied!";
+      setTimeout(function () { btn.textContent = original; }, 2000);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(onCopied);
+    }
+  }
+
+  window.initWalletCopyButtons = function () {
+    document.querySelectorAll("[data-copy-wallet]").forEach(function (btn) {
+      if (btn.dataset.copyBound) return;
+      btn.dataset.copyBound = "1";
+      btn.addEventListener("click", function () {
+        var card = btn.closest(".wallet-info-card, .app-card, main");
+        var box = card && card.querySelector("[data-platform-wallet]");
+        copyWalletText(box ? box.textContent.trim() : getWallet(), btn);
+      });
+    });
+  };
+
+  document.addEventListener("DOMContentLoaded", function () {
+    initWalletCopyButtons();
+  });
+  if (document.readyState !== "loading") initWalletCopyButtons();
 })();

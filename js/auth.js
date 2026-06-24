@@ -23,7 +23,7 @@ window.SatVaultAuth = {
     if (window.SITE && SITE.name) return SITE.name;
     var user = this.getUser();
     if (user && user.name) return user.name;
-    return "Investor";
+    return "Jerry McMillan";
   },
 
   login: function (email, password) {
@@ -34,7 +34,7 @@ window.SatVaultAuth = {
     if (email.trim().toLowerCase() !== expectedEmail || password !== expectedPassword) {
       return false;
     }
-    var displayName = (window.SITE && SITE.displayName) || (window.SITE && SITE.name) || "Investor";
+    var displayName = (window.SITE && SITE.displayName) || (window.SITE && SITE.name) || "Jerry McMillan";
     var session = {
       email: email.trim(),
       name: displayName,

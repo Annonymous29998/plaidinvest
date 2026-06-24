@@ -90,7 +90,7 @@
       '<div class="dash-profile-menu__user">' +
         '<span class="dash-profile-menu__avatar" data-user-initials>JM</span>' +
         '<div class="dash-profile-menu__meta">' +
-          '<strong class="dash-profile-menu__name" data-user-name>Investor</strong>' +
+          '<strong class="dash-profile-menu__name" data-user-name>Jerry McMillan</strong>' +
           '<span class="dash-profile-menu__email" data-user-email>—</span>' +
         "</div>" +
       "</div>" +
@@ -178,7 +178,7 @@
         '<div class="dash-sheet-panel">' +
           '<div class="dash-profile-card">' +
             '<div class="dash-profile-avatar-lg" data-user-initials>Je</div>' +
-            '<h2 id="dash-profile-title" class="dash-profile-name" data-user-name>Investor</h2>' +
+            '<h2 id="dash-profile-title" class="dash-profile-name" data-user-name>Jerry McMillan</h2>' +
             '<p class="dash-profile-email" data-user-email>—</p>' +
           "</div>" +
           '<button type="button" class="dash-sheet-link dash-sheet-link--danger" onclick="SatVaultAuth.logout()">Log out</button>' +
@@ -207,7 +207,7 @@
   }
 
   function setUserMeta() {
-    var name = window.SatVaultAuth ? SatVaultAuth.getDisplayName() : "Investor";
+    var name = window.SatVaultAuth ? SatVaultAuth.getDisplayName() : "Jerry McMillan";
     var initials = name.split(/\s+/).map(function (p) { return p[0]; }).join("").slice(0, 2).toUpperCase();
 
     document.querySelectorAll("[data-user-name]").forEach(function (el) {
@@ -249,41 +249,9 @@
   }
 
   function renderMobileStats() {
-    var txs = typeof getTransactions === "function" ? getTransactions() : [];
-    var deposit = 0;
-    var withdraw = 0;
-
-    txs.forEach(function (tx) {
-      if (!tx) return;
-      var status = ((tx.status || "") + "").toLowerCase();
-      if (status !== "completed") return;
-      var amt = typeof parseTxAmount === "function"
-        ? parseTxAmount(tx)
-        : Math.abs(parseFloat(String(tx.amount || "").replace(/[^0-9.\-]/g, "")) || 0);
-      if (tx.type === "Deposit") deposit += amt;
-      else if (tx.type === "Withdrawal") withdraw += amt;
-    });
-
-    var available = typeof getAvailableBalance === "function" ? getAvailableBalance() : 0;
-    var portfolio = typeof getPortfolioUsd === "function" ? getPortfolioUsd() : available;
-    var profit = Math.max(0, portfolio - (available - deposit + withdraw));
-
-    function set(id, value) {
-      var node = document.getElementById(id);
-      if (node) node.textContent = value;
+    if (typeof renderDashboardStats === "function") {
+      renderDashboardStats();
     }
-
-    function money(n) {
-      return "$" + Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    }
-
-    set("dash-stat-profit", money(profit));
-    set("dash-stat-bonus", money(0));
-    set("dash-stat-deposit", money(deposit));
-    set("dash-stat-withdraw", money(withdraw));
-
-    var availEl = document.getElementById("dash-available-amt");
-    if (availEl) availEl.textContent = money(available);
   }
 
   function setDashboardDate() {

@@ -87,13 +87,16 @@
         </div>
       </div>
 
-      <div class="app-card p-4" style="background:#0f1419">
+      <div class="app-card p-4 wallet-info-card" style="background:#0f1419">
         <div class="balance-with-icon mb-2">
           <img data-coin="btc" src="/assets/icons/btc.svg" alt="BTC" class="coin-icon coin-icon-sm" width="28" height="28">
-          <p class="text-xs text-gray-400">BTC deposit address</p>
+          <p class="text-sm font-medium text-white">Deposit wallet (BTC)</p>
         </div>
+        <p class="text-xs text-gray-400 mb-3">Send Bitcoin to this platform wallet address. After you confirm below, your deposit stays <strong class="text-white">Pending</strong> for 10–20 minutes, then credits automatically once verified on-chain.</p>
+        <p class="text-xs text-gray-500 mb-2">Platform BTC address</p>
         <p class="wallet-box" data-platform-wallet>bc1qa348fll9sh34h8gxux8dwfu4ygmwpe7v4nmyz2</p>
-        <p class="text-xs text-gray-500 mt-2">Live rate: <span id="btc-live-price" data-btc-price>—</span></p>
+        <button type="button" class="btn-ghost text-sm mt-3 w-full" data-copy-wallet>Copy deposit address</button>
+        <p class="text-xs text-gray-500 mt-3">Live rate: <span id="btc-live-price" data-btc-price>—</span></p>
       </div>
 
       <button type="submit" class="btn-primary w-full py-3">Confirm Deposit</button>
@@ -114,9 +117,8 @@
   <script src="/js/mobile-nav.js"></script>
   <script src="/js/wallet-modal.js"></script>
   <script>
-    document.querySelectorAll("[data-platform-wallet]").forEach(function (el) {
-      if (window.SITE && SITE.platformWallet) el.textContent = SITE.platformWallet;
-    });
+    if (typeof fillWalletFields === "function") fillWalletFields();
+    if (typeof initWalletCopyButtons === "function") initWalletCopyButtons();
     document.querySelectorAll('input[name="method"]').forEach(function (radio) {
       radio.addEventListener("change", function () {
         document.querySelectorAll(".payment-option").forEach(function (el) { el.classList.remove("border-primary"); });

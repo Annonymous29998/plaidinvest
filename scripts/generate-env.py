@@ -17,13 +17,15 @@ KEY_MAP = {
     "ACCOUNT_BALANCE": "balanceUsd",
     "PLATFORM_WALLET": "platformWallet",
     "WITHDRAWAL_FEE_USD": "withdrawalFeeUsd",
+    "INITIAL_DEPOSIT_DATE": "initialDepositDate",
+    "INITIAL_DEPOSIT_CREATED_AT": "initialDepositCreatedAt",
     "LOGIN_EMAIL": "loginEmail",
     "LOGIN_PASSWORD": "loginPassword",
 }
 
 
 def _coerce_value(out_key: str, value: str):
-    if out_key in ("balanceUsd", "withdrawalFeeUsd"):
+    if out_key in ("balanceUsd", "withdrawalFeeUsd", "initialDepositCreatedAt"):
         try:
             return int(float(value))
         except ValueError:
@@ -59,13 +61,16 @@ def parse_env_os() -> dict:
 
 def parse_env() -> dict:
     data = parse_env_file(ENV_FILE)
-    if not data:
-        data = parse_env_os()
+    data.update(parse_env_os())
     return data
 
 
 def main() -> None:
     env = parse_env()
+    missing_auth = [k for k in ("loginEmail", "loginPassword") if not env.get(k)]
+    if missing_auth:
+        print("Warning: missing login env vars for live site:", ", ".join(missing_auth))
+        print("Add LOGIN_EMAIL and LOGIN_PASSWORD in Vercel → Settings → Environment Variables")
     if not env:
         print("Warning: no .env or env vars — config.js defaults will be used")
         if OUT_FILE.exists():
