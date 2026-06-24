@@ -71,16 +71,54 @@ window.BtcPrice = {
     return true;
   },
 
-  fetchLive: function () {
+  fetchFromCoinGecko: function () {
     return fetch(
       "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true&include_market_cap=true"
     )
-      .then(function (r) { return r.json(); })
+      .then(function (r) {
+        if (!r.ok) throw new Error("coingecko http " + r.status);
+        return r.json();
+      })
       .then(function (data) {
         var btc = data.bitcoin;
-        if (!btc || !btc.usd) return;
-        BtcPrice.applyPrice(btc.usd, btc.usd_24h_change || 0, btc.usd_market_cap);
+        if (!btc || !btc.usd) throw new Error("coingecko missing price");
+        return BtcPrice.applyPrice(btc.usd, btc.usd_24h_change || 0, btc.usd_market_cap);
+      });
+  },
+
+  fetchFromBinance: function () {
+    return fetch("https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT")
+      .then(function (r) {
+        if (!r.ok) throw new Error("binance http " + r.status);
+        return r.json();
       })
+      .then(function (data) {
+        if (!data || !data.lastPrice) throw new Error("binance missing price");
+        var price = parseFloat(data.lastPrice);
+        var change = parseFloat(data.priceChangePercent);
+        if (!isFinite(price) || price <= 0) throw new Error("binance invalid price");
+        return BtcPrice.applyPrice(price, isFinite(change) ? change : 0, BtcPrice.marketCap || null);
+      });
+  },
+
+  fetchFromCoinbase: function () {
+    return fetch("https://api.coinbase.com/v2/prices/BTC-USD/spot")
+      .then(function (r) {
+        if (!r.ok) throw new Error("coinbase http " + r.status);
+        return r.json();
+      })
+      .then(function (data) {
+        var amt = data && data.data && data.data.amount;
+        var price = parseFloat(amt);
+        if (!isFinite(price) || price <= 0) throw new Error("coinbase missing price");
+        return BtcPrice.applyPrice(price, BtcPrice.change24h || 0, BtcPrice.marketCap || null);
+      });
+  },
+
+  fetchLive: function () {
+    return BtcPrice.fetchFromCoinGecko()
+      .catch(function () { return BtcPrice.fetchFromBinance(); })
+      .catch(function () { return BtcPrice.fetchFromCoinbase(); })
       .catch(function () {});
   },
 
@@ -253,6 +291,7 @@ window.BtcPrice = {
     BtcPrice.fetchLive();
     if (BtcPrice._pollStarted) return;
     BtcPrice._pollStarted = true;
+    setTimeout(function () { BtcPrice.fetchLive(); }, 2000);
     setTimeout(function () { BtcPrice.fetchMarketData(); }, 1500);
     setTimeout(BtcPrice.fetchYearRange, 3000);
     setInterval(BtcPrice.fetchLive, BtcPrice.pollMs);
