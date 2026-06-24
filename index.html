@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full scroll-smooth">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <title>PlaidInvest | Bitcoin Investment Platform</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/theme.css">
+  <link rel="stylesheet" href="/css/app.css">
+  <link rel="stylesheet" href="/css/home.css">
+</head>
+<body class="min-h-full bg-gray-950 text-gray-100 antialiased">
+
+  <!-- Nav (like tspcx.com) -->
+  <header class="site-nav">
+    <div class="site-nav-inner">
+      <a href="/index.html" class="text-logo">
+        <span class="text-logo-mark">₿</span>
+        <span data-logo-text>PlaidInvest</span>
+      </a>
+      <nav class="site-nav-links">
+        <a href="#home" class="nav-link">Home</a>
+        <a href="#investment" class="nav-link">Investment</a>
+        <a href="#about" class="nav-link">About</a>
+        <a href="#contact" class="nav-link">Contact</a>
+      </nav>
+      <div class="site-nav-actions">
+        <a href="/login.html" class="btn-primary text-sm site-nav-auth" data-auth-guest>Get Started</a>
+        <a href="/dashboard.html" class="btn-primary text-sm site-nav-auth hidden" data-auth-user>Dashboard</a>
+        <button id="mobile-menu-btn" class="mobile-menu-btn" aria-label="Menu" aria-expanded="false">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <div id="mobile-drawer" class="mobile-drawer">
+    <a href="#home" class="nav-link text-lg">Home</a>
+    <a href="#investment" class="nav-link text-lg">Investment</a>
+    <a href="#about" class="nav-link text-lg">About</a>
+    <a href="#contact" class="nav-link text-lg">Contact</a>
+    <a href="/login.html" class="btn-primary text-center py-3" data-auth-guest>Get Started</a>
+    <a href="/dashboard.html" class="btn-primary text-center py-3 hidden" data-auth-user>Back to Dashboard</a>
+  </div>
+
+  <main>
+    <!-- Hero -->
+    <section id="home" class="hero">
+      <div class="hero-inner">
+        <div>
+          <p class="text-primary text-sm font-bold uppercase tracking-widest mb-4">Invest in the Future</p>
+          <h1>INVEST IN BITCOIN</h1>
+          <p class="hero-lead">
+            A refined approach to Bitcoin investing — built on precision, risk control, and consistent growth with <span data-logo-text>PlaidInvest</span>.
+          </p>
+          <div class="hero-actions">
+            <a href="/login.html" class="btn-primary px-8 py-3">Start Investing</a>
+            <a href="#investment" class="btn-ghost px-8 py-3">Learn More</a>
+          </div>
+          <div class="stat-grid mt-12">
+            <div class="stat-box"><strong data-btc-price class="price-pulse">Loading…</strong><span>BTC / USD (live)</span></div>
+            <div class="stat-box"><strong data-btc-change>—</strong><span>24h Change</span></div>
+            <div class="stat-box"><strong id="hero-mkt-cap">—</strong><span>Market Cap</span></div>
+          </div>
+        </div>
+        <div class="btc-visual">
+          <img data-coin="btcPng" src="/assets/icons/btc.png" alt="Bitcoin" class="coin-icon-xl" width="88" height="88">
+        </div>
+      </div>
+    </section>
+
+    <!-- Why Bitcoin (replaces Optimus video section — fast, no video) -->
+    <section id="investment" class="section-pad section-alt">
+      <h2 class="section-title">Why Bitcoin?</h2>
+      <p class="section-sub">Bitcoin represents the next frontier in digital finance — scarce, decentralized, and globally recognized as digital gold.</p>
+      <div class="max-w-6xl mx-auto feature-grid">
+        <div class="feature-card">
+          <h4>✅ Powered by blockchain technology</h4>
+          <p>Secured by a global network with transparent, verifiable transactions on the blockchain.</p>
+        </div>
+        <div class="feature-card">
+          <h4>✅ Trades 24/7 worldwide</h4>
+          <p>Unlike traditional markets, Bitcoin never sleeps — trade and grow your portfolio around the clock.</p>
+        </div>
+        <div class="feature-card">
+          <h4>✅ Hedge against inflation</h4>
+          <p>With a fixed supply of 21 million coins, Bitcoin is designed to preserve value over time.</p>
+        </div>
+        <div class="feature-card">
+          <h4>✅ Institutional adoption growing</h4>
+          <p>Major companies and funds are adding Bitcoin to their balance sheets — you're early to the revolution.</p>
+        </div>
+        <div class="feature-card">
+          <h4>🌍 Global accessibility</h4>
+          <p>Anyone with internet access can participate — no banks or borders required.</p>
+        </div>
+        <div class="feature-card">
+          <h4>📈 $1T+ market cap</h4>
+          <p>Bitcoin has proven staying power as the world's largest cryptocurrency by market value.</p>
+        </div>
+      </div>
+      <p class="text-center text-gray-400 mt-10 max-w-2xl mx-auto">
+        Early investors could be part of the next major financial breakthrough.
+        <a href="/login.html" class="text-primary font-semibold"> Join today.</a>
+      </p>
+    </section>
+
+    <!-- Milestones -->
+    <section id="about" class="section-pad">
+      <h2 class="section-title">Platform Milestones</h2>
+      <p class="section-sub">Key achievements that make our Bitcoin platform a compelling choice for investors.</p>
+      <div class="max-w-6xl mx-auto milestone-timeline">
+        <div class="milestone"><div class="milestone-year">2009</div><h4 class="font-bold text-white mt-2 mb-1">Bitcoin Launched</h4><p class="text-gray-400 text-sm">The genesis block marks the birth of decentralized digital currency.</p></div>
+        <div class="milestone"><div class="milestone-year">2017</div><h4 class="font-bold text-white mt-2 mb-1">Mainstream Awareness</h4><p class="text-gray-400 text-sm">Bitcoin enters global conversation as a legitimate asset class.</p></div>
+        <div class="milestone"><div class="milestone-year">2021</div><h4 class="font-bold text-white mt-2 mb-1">Institutional Era</h4><p class="text-gray-400 text-sm">Major corporations add BTC to treasury reserves worldwide.</p></div>
+        <div class="milestone"><div class="milestone-year">2026</div><h4 class="font-bold text-white mt-2 mb-1"><span data-logo-text>PlaidInvest</span> Launch</h4><p class="text-gray-400 text-sm">Structured Bitcoin investment plans made accessible to everyone.</p></div>
+      </div>
+    </section>
+
+    <!-- BTC Market Performance (like TSLA chart on tspcx) -->
+    <section class="section-pad section-alt">
+      <h2 class="section-title">Bitcoin Market Performance</h2>
+      <p class="section-sub">Live market data and historical performance</p>
+      <div class="max-w-6xl mx-auto market-panel">
+        <div class="market-panel-header">
+          <div class="balance-with-icon">
+            <img data-coin="btc" src="/assets/icons/btc.svg" alt="BTC" class="coin-icon coin-icon-sm" width="32" height="32">
+            <div>
+              <h3 class="font-bold text-white">BTC / USD Chart</h3>
+              <p class="text-xs text-gray-500 mt-1">Market open 24/7</p>
+            </div>
+          </div>
+          <div class="period-btns">
+            <button class="period-btn active" data-period="1D">1D</button>
+            <button class="period-btn" data-period="1W">1W</button>
+            <button class="period-btn" data-period="1M">1M</button>
+            <button class="period-btn" data-period="1Y">1Y</button>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="btc-chart"></canvas>
+          <span id="chart-live-tag" class="chart-live-tag" aria-hidden="true"></span>
+        </div>
+        <div class="market-stats">
+          <div class="market-stat"><label>Real-time Price</label><span id="mkt-price" class="live-stat price-pulse">Loading…</span></div>
+          <div class="market-stat"><label>52W High</label><span id="mkt-high" class="live-stat">—</span></div>
+          <div class="market-stat"><label>52W Low</label><span id="mkt-low" class="live-stat">—</span></div>
+          <div class="market-stat"><label>Market Cap</label><span id="mkt-cap" class="live-stat">—</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Investment Plans (5 plans like tspcx.com) -->
+    <section id="plans" class="section-pad">
+      <h2 class="section-title">Choose Your Investment Plan</h2>
+      <p class="section-sub">Start your Bitcoin journey with plans designed for different goals and risk profiles.</p>
+      <div class="max-w-6xl mx-auto plan-grid">
+
+        <div class="plan-card">
+          <h3 class="font-bold text-white text-lg">Basic Plan</h3>
+          <div class="plan-return">12%</div>
+          <p class="text-gray-500 text-xs">Expected Return</p>
+          <p class="plan-meta">Min: $500 · Max: $9,999</p>
+          <p class="plan-meta">Duration: 4 Days</p>
+          <ul class="plan-perks"><li>Instant Withdrawals</li><li>24/7 Support</li><li>Secure Investment</li></ul>
+          <a href="/login.html" class="btn-primary text-center py-2.5 mt-auto" data-auth-href data-href-guest="/login.html" data-href-logged-in="/dashboard/deposits.html">Choose Plan</a>
+        </div>
+
+        <div class="plan-card featured">
+          <h3 class="font-bold text-white text-lg">Premium Plan</h3>
+          <div class="plan-return">18%</div>
+          <p class="text-gray-500 text-xs">Expected Return</p>
+          <p class="plan-meta">Min: $10,000 · Max: $49,999</p>
+          <p class="plan-meta">Duration: 15 Days</p>
+          <ul class="plan-perks"><li>Instant Withdrawals</li><li>24/7 Support</li><li>Secure Investment</li></ul>
+          <a href="/login.html" class="btn-primary text-center py-2.5 mt-auto" data-auth-href data-href-guest="/login.html" data-href-logged-in="/dashboard/deposits.html">Choose Plan</a>
+        </div>
+
+        <div class="plan-card">
+          <h3 class="font-bold text-white text-lg">Platinum Plan</h3>
+          <div class="plan-return">25%</div>
+          <p class="text-gray-500 text-xs">Expected Return</p>
+          <p class="plan-meta">Min: $50,000 · Max: $99,999</p>
+          <p class="plan-meta">Duration: 30 Days</p>
+          <ul class="plan-perks"><li>Instant Withdrawals</li><li>24/7 Support</li><li>Secure Investment</li></ul>
+          <a href="/login.html" class="btn-primary text-center py-2.5 mt-auto" data-auth-href data-href-guest="/login.html" data-href-logged-in="/dashboard/deposits.html">Choose Plan</a>
+        </div>
+
+        <div class="plan-card">
+          <h3 class="font-bold text-white text-lg">Whale BTC</h3>
+          <div class="plan-return">35%</div>
+          <p class="text-gray-500 text-xs">Expected Return</p>
+          <p class="plan-meta">Min: $100,000 · Max: $499,999</p>
+          <p class="plan-meta">Duration: 60 Days</p>
+          <ul class="plan-perks"><li>Instant Withdrawals</li><li>24/7 Support</li><li>Secure Investment</li></ul>
+          <a href="/login.html" class="btn-primary text-center py-2.5 mt-auto" data-auth-href data-href-guest="/login.html" data-href-logged-in="/dashboard/deposits.html">Choose Plan</a>
+        </div>
+
+        <div class="plan-card">
+          <h3 class="font-bold text-white text-lg">Elite BTC</h3>
+          <div class="plan-return">50%</div>
+          <p class="text-gray-500 text-xs">Expected Return</p>
+          <p class="plan-meta">Min: $500,000 · Max: $1,000,000</p>
+          <p class="plan-meta">Duration: 90 Days</p>
+          <ul class="plan-perks"><li>Instant Withdrawals</li><li>24/7 Support</li><li>Secure Investment</li></ul>
+          <a href="/login.html" class="btn-primary text-center py-2.5 mt-auto" data-auth-href data-href-guest="/login.html" data-href-logged-in="/dashboard/deposits.html">Choose Plan</a>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Live BTC price (real data, no demo feed) -->
+    <section class="section-pad section-alt">
+      <h2 class="section-title">Live Bitcoin Price</h2>
+      <p class="section-sub">Real-time BTC/USD from global markets — updates every 20 seconds.</p>
+      <div class="max-w-6xl mx-auto stat-grid">
+        <div class="stat-box"><strong id="mkt-price-hero" data-btc-price class="price-pulse">Loading…</strong><span>BTC / USD</span></div>
+        <div class="stat-box"><strong id="mkt-change-hero" data-btc-change>—</strong><span>24h Change</span></div>
+        <div class="stat-box"><strong id="mkt-high-hero">—</strong><span>52W High</span></div>
+        <div class="stat-box"><strong id="mkt-cap-hero">—</strong><span>Market Cap</span></div>
+      </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="section-pad">
+      <h2 class="section-title">What Our Investors Say</h2>
+      <p class="section-sub">Real investor feedback on live Bitcoin pricing and structured investment plans.</p>
+      <div class="max-w-6xl mx-auto testimonial-grid">
+        <div class="testimonial"><div class="stars">★★★★★</div><p>"Bitcoin returns on this platform have exceeded my expectations. The dashboard is clean and deposits are seamless."</p><div class="author">Sarah Johnson</div><div class="role">Tech Entrepreneur</div></div>
+        <div class="testimonial"><div class="stars">★★★★★</div><p>"As a financial advisor, I appreciate the structured plans and live BTC pricing. Investing made simple."</p><div class="author">Michael Chen</div><div class="role">Financial Advisor</div></div>
+        <div class="testimonial"><div class="stars">★★★★★</div><p>"Investing in Bitcoin through this platform feels like being part of the future of finance."</p><div class="author">Emily Rodriguez</div><div class="role">Portfolio Manager</div></div>
+        <div class="testimonial"><div class="stars">★★★★★</div><p>"The most intuitive platform I've used. My BTC balance updates with the real market price."</p><div class="author">David Thompson</div><div class="role">Software Engineer</div></div>
+        <div class="testimonial"><div class="stars">★★★★★</div><p>"Recommended this to my entire team. The investment process is seamless and the plans are well structured."</p><div class="author">Lisa Parker</div><div class="role">Marketing Director</div></div>
+        <div class="testimonial"><div class="stars">★★★★★</div><p>"Finally a Bitcoin platform that doesn't feel complicated. Sign up, deposit, and watch your portfolio grow."</p><div class="author">James Wilson</div><div class="role">Crypto Analyst</div></div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-band">
+      <h2>Ready to Join the Bitcoin Revolution?</h2>
+      <p>Start your investment journey today and be part of the next financial breakthrough.</p>
+      <div class="cta-actions">
+        <a href="/login.html" class="btn-primary px-8 py-3 text-lg">Get Started</a>
+        <a href="#contact" class="btn-ghost px-8 py-3 text-lg">Contact Us</a>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer id="contact" class="site-footer">
+    <div class="footer-grid">
+      <div>
+        <a href="/index.html" class="text-logo mb-4 inline-flex">
+          <span class="text-logo-mark">₿</span>
+          <span data-logo-text>PlaidInvest</span>
+        </a>
+        <p class="text-gray-400 text-sm mt-3 max-w-sm">Accelerating the world's transition to accessible Bitcoin investment and wealth building.</p>
+      </div>
+      <div>
+        <h4 class="font-bold text-white mb-3">Quick Links</h4>
+        <ul class="footer-links">
+          <li><a href="#home">Home</a></li>
+          <li><a href="#plans">Investment Plans</a></li>
+          <li><a href="#about">About Bitcoin</a></li>
+          <li><a href="/login.html">Login</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="font-bold text-white mb-3">Support</h4>
+        <ul class="footer-links">
+          <li><a href="mailto:support@yourdomain.com" data-email>support@yourdomain.com</a></li>
+          <li><a href="/login.html" data-auth-href data-href-guest="/login.html" data-href-logged-in="/dashboard.html">Dashboard</a></li>
+          <li><a href="/login.html" data-auth-href data-href-guest="/login.html" data-href-logged-in="/dashboard/deposits.html">Deposits</a></li>
+          <li><a href="/login.html" data-auth-href data-href-guest="/login.html" data-href-logged-in="/dashboard/withdrawals.html">Withdrawals</a></li>
+        </ul>
+      </div>
+    </div>
+    <p class="text-center text-gray-600 text-sm mt-10">© <span data-year>2026</span> <span data-logo-text>PlaidInvest</span>. All rights reserved.</p>
+  </footer>
+
+  <script src="/js/env.js"></script>
+  <script src="/js/config.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/price.js"></script>
+  <script src="/js/app.js"></script>
+  <script src="/js/home.js"></script>
+  <script>
+    SatVaultAuth.applyPublicNav();
+    (function () {
+      var chartHandler = BtcPrice.onLivePrice;
+      BtcPrice.onLivePrice = function (price, prev) {
+        if (typeof chartHandler === "function") chartHandler(price, prev);
+        var ph = document.getElementById("mkt-price-hero");
+        if (ph && price) BtcPrice.setStat("mkt-price-hero", price, BtcPrice.formatUsd);
+      };
+      setInterval(function () {
+        var h = document.getElementById("mkt-high");
+        var hh = document.getElementById("mkt-high-hero");
+        if (h && hh) hh.textContent = h.textContent;
+      }, 500);
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <title>PlaidInvest | Account History</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/theme.css">
+  <link rel="stylesheet" href="/css/app.css">
+  <script src="/js/auth.js"></script>
+  <script src="/js/guard-auth.js"></script>
+</head>
+<body class="min-h-full bg-gray-950 text-gray-100 antialiased">
+
+  <header class="app-header">
+    <div class="header-inner">
+      <a href="/index.html" class="text-logo"><span class="text-logo-mark">₿</span><span data-logo-text>PlaidInvest</span></a>
+      <nav class="desktop-nav hidden sm:flex gap-3 items-center">
+        <a href="/dashboard.html" class="nav-link">Dashboard</a>
+        <a href="/dashboard/deposits.html" class="nav-link">Deposits</a>
+        <a href="/dashboard/withdrawals.html" class="nav-link">Withdraw</a>
+        <a href="/dashboard/accounthistory.html" class="nav-link active">History</a>
+        <button type="button" onclick="SatVaultAuth.logout()" class="nav-link">Logout</button>
+      </nav>
+      <button id="dash-menu-btn" class="dash-menu-btn" aria-label="Menu" aria-expanded="false">☰</button>
+    </div>
+    <nav id="dash-mobile-nav" class="dash-mobile-nav">
+      <a href="/dashboard.html" class="nav-link">Dashboard</a>
+      <a href="/dashboard/deposits.html" class="nav-link">Deposits</a>
+      <a href="/dashboard/withdrawals.html" class="nav-link">Withdraw</a>
+      <a href="/dashboard/accounthistory.html" class="nav-link active">History</a>
+      <button type="button" onclick="SatVaultAuth.logout()" class="nav-link text-left">Logout</button>
+    </nav>
+  </header>
+
+  <main class="page-main">
+    <div class="page-heading">
+      <h1>Account History</h1>
+      <p>Your transactions on <span data-logo-text>PlaidInvest</span>. BTC value uses live market price.</p>
+    </div>
+    <div class="app-card table-scroll">
+      <table class="app-table min-w-full">
+        <thead>
+          <tr><th>Date</th><th>Type</th><th>Asset</th><th class="text-right">Amount</th><th class="text-right">Status</th></tr>
+        </thead>
+        <tbody id="history-rows">
+          <tr><td colspan="5" class="p-8 sm:p-12 text-center text-gray-500">
+            <img data-coin="btc" src="/assets/icons/btc.svg" alt="" class="coin-icon coin-icon-lg mx-auto mb-3" width="64" height="64">
+            <p>No transactions yet</p>
+            <a href="/dashboard/deposits.html" class="inline-block btn-primary mt-4 text-sm">Make a deposit</a>
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <footer class="page-footer">© <span data-year>2026</span> <span data-logo-text>PlaidInvest</span></footer>
+
+  <script src="/js/env.js"></script>
+  <script src="/js/config.js"></script>
+  <script src="/js/price.js"></script>
+  <script src="/js/app.js"></script>
+  <script src="/js/dashboard.js"></script>
+  <script>
+    function renderHistory() {
+      var rows = typeof getTransactions === "function" ? getTransactions() : JSON.parse(localStorage.getItem("transactions") || "[]");
+      var tbody = document.getElementById("history-rows");
+      if (!rows.length || !tbody) return;
+      tbody.innerHTML = rows.map(function (tx) {
+        var status = tx.status || "";
+        var statusClass = status.toLowerCase() === "pending" || status.toLowerCase() === "processing"
+          ? "text-yellow-400" : "text-gray-300";
+        return "<tr><td>" + tx.date + "</td><td>" + tx.type + "</td><td>" + tx.asset + "</td>" +
+          "<td class=\"text-right font-medium " + (tx.amount.indexOf("+") === 0 ? "text-green-400" : "text-red-400") + "\">" + tx.amount + "</td>" +
+          "<td class=\"text-right " + statusClass + "\">" + status + "</td></tr>";
+      }).join("");
+    }
+    renderHistory();
+    document.addEventListener("transactionsUpdated", renderHistory);
+  </script>
+</body>
+</html>

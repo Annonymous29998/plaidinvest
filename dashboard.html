@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <title>PlaidInvest | Dashboard</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://api.coingecko.com" crossorigin>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/theme.css">
+  <link rel="stylesheet" href="/css/app.css">
+  <script src="/js/auth.js"></script>
+  <script src="/js/guard-auth.js"></script>
+</head>
+<body class="min-h-full bg-gray-950 text-gray-100 antialiased">
+
+  <header class="app-header">
+    <div class="header-inner">
+      <a href="/index.html" class="text-logo">
+        <span class="text-logo-mark">₿</span>
+        <span data-logo-text>PlaidInvest</span>
+      </a>
+      <nav class="desktop-nav hidden sm:flex gap-3 shrink-0 items-center">
+        <a href="/dashboard.html" class="nav-link active">Dashboard</a>
+        <a href="/dashboard/deposits.html" class="nav-link">Deposits</a>
+        <a href="/dashboard/withdrawals.html" class="nav-link">Withdraw</a>
+        <a href="/dashboard/accounthistory.html" class="nav-link">History</a>
+        <button type="button" onclick="SatVaultAuth.logout()" class="nav-link">Logout</button>
+      </nav>
+      <button id="dash-menu-btn" class="dash-menu-btn" aria-label="Menu" aria-expanded="false">☰</button>
+    </div>
+    <nav id="dash-mobile-nav" class="dash-mobile-nav">
+      <a href="/dashboard.html" class="nav-link active">Dashboard</a>
+      <a href="/dashboard/deposits.html" class="nav-link">Deposits</a>
+      <a href="/dashboard/withdrawals.html" class="nav-link">Withdraw</a>
+      <a href="/dashboard/accounthistory.html" class="nav-link">History</a>
+      <button type="button" onclick="SatVaultAuth.logout()" class="nav-link text-left">Logout</button>
+    </nav>
+  </header>
+
+  <main class="page-main">
+    <div class="page-heading">
+      <h1>Welcome back, <span data-user-name>Jerry McMillan</span></h1>
+      <p><span data-logo-text>PlaidInvest</span> · Bitcoin Dashboard · Live BTC <span id="dashboard-btc-rate" class="text-primary font-semibold">—</span></p>
+    </div>
+
+    <section class="app-card balance-hero">
+      <p class="text-gray-400 text-sm uppercase tracking-wider mb-3">Current Account Balance</p>
+      <div class="balance-grid">
+        <div class="balance-with-icon">
+          <img data-coin="usd" src="/assets/icons/usd.svg" alt="USD" class="coin-icon coin-icon-lg" width="64" height="64">
+          <div>
+            <p class="text-gray-400 text-sm mb-1">USD Balance <span class="text-xs text-gray-500">(live)</span></p>
+            <p class="balance-amount-usd text-white" data-balance-usd>$15,500.00</p>
+          </div>
+        </div>
+        <div class="balance-with-icon">
+          <img data-coin="btc" src="/assets/icons/btc.svg" alt="BTC" class="coin-icon coin-icon-lg" width="64" height="64">
+          <div>
+            <p class="text-gray-400 text-sm mb-1">BTC Balance <span class="text-xs text-gray-500">(live)</span></p>
+            <p class="balance-amount-btc price-pulse" data-balance-btc>—</p>
+            <p class="text-gray-500 text-xs mt-2">BTC/USD: <span id="btc-live-price" class="text-primary font-semibold" data-btc-price>Loading…</span> · <span id="btc-live-change" class="font-semibold" data-btc-change>—</span></p>
+          </div>
+        </div>
+      </div>
+      <div class="action-row mt-6 sm:mt-8">
+        <a href="/dashboard/deposits.html" class="btn-primary">Deposit</a>
+        <a href="/dashboard/withdrawals.html" class="btn-ghost">Withdraw</a>
+        <a href="/dashboard/accounthistory.html" class="btn-ghost">History</a>
+      </div>
+    </section>
+
+    <div class="dashboard-stats">
+      <div class="app-card stat-card">
+        <p class="text-gray-400 text-xs">Account Balance</p>
+        <p class="text-lg sm:text-xl font-semibold mt-1 text-white" data-balance-usd>$15,500.00</p>
+      </div>
+      <div class="app-card stat-card balance-with-icon">
+        <img data-coin="btc" src="/assets/icons/btc.svg" alt="" class="coin-icon coin-icon-sm" width="28" height="28">
+        <div>
+          <p class="text-gray-400 text-xs">Live BTC Price</p>
+          <p class="text-lg sm:text-xl font-semibold mt-1 stat-value price-pulse" id="btc-price-copy" data-btc-price>—</p>
+        </div>
+      </div>
+      <div class="app-card stat-card">
+        <p class="text-gray-400 text-xs">24h Change</p>
+        <p class="text-lg sm:text-xl font-semibold mt-1" id="btc-change-copy" data-btc-change>—</p>
+      </div>
+    </div>
+
+    <div class="dashboard-grid">
+      <div class="app-card p-5 sm:p-6">
+        <h2 class="font-bold mb-4 text-white">Investment Plans</h2>
+        <p class="text-gray-400 text-sm mb-4">Browse structured Bitcoin plans on the homepage.</p>
+        <a href="/index.html#plans" class="btn-primary text-sm inline-block">View Plans</a>
+      </div>
+      <div class="app-card p-5 sm:p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="font-bold text-white">Recent Transactions</h2>
+          <a href="/dashboard/accounthistory.html" class="text-primary text-sm">View all</a>
+        </div>
+        <div id="recent-tx" class="text-center py-6 text-gray-500 text-sm">No transactions yet.</div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="page-footer">
+    © <span data-year>2026</span> <span data-logo-text>PlaidInvest</span>
+  </footer>
+
+  <script src="/js/env.js"></script>
+  <script src="/js/config.js"></script>
+  <script src="/js/price.js"></script>
+  <script src="/js/app.js"></script>
+  <script src="/js/dashboard.js"></script>
+  <script>
+    function renderRecentTx() {
+      var txs = typeof getTransactions === "function" ? getTransactions() : JSON.parse(localStorage.getItem("transactions") || "[]");
+      var recent = document.getElementById("recent-tx");
+      if (!txs.length || !recent) return;
+      recent.innerHTML = "<div class='space-y-3 text-left'>" + txs.slice(0, 5).map(function (tx) {
+        var status = tx.status ? " · <span class='text-yellow-400'>" + tx.status + "</span>" : "";
+        if ((tx.status || "").toLowerCase() === "completed") {
+          status = " · <span class='text-gray-500'>Completed</span>";
+        }
+        return "<div class='flex flex-col sm:flex-row sm:justify-between text-sm border-b border-gray-800 pb-2 gap-1 recent-tx-row'>" +
+          "<span class='text-gray-400'>" + tx.date + " · " + tx.type + " · " + tx.asset + status + "</span>" +
+          "<span class='text-primary font-medium'>" + tx.amount + "</span></div>";
+      }).join("") + "</div>";
+    }
+    renderRecentTx();
+    document.addEventListener("transactionsUpdated", renderRecentTx);
+  </script>
+</body>
+</html>

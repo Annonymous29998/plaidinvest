@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <title>PlaidInvest | Deposit</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/theme.css">
+  <link rel="stylesheet" href="/css/app.css">
+  <script src="/js/auth.js"></script>
+  <script src="/js/guard-auth.js"></script>
+</head>
+<body class="min-h-full bg-gray-950 text-gray-100 antialiased">
+
+  <header class="app-header">
+    <div class="header-inner">
+      <a href="/index.html" class="text-logo"><span class="text-logo-mark">₿</span><span data-logo-text>PlaidInvest</span></a>
+      <nav class="desktop-nav hidden sm:flex gap-3 items-center">
+        <a href="/dashboard.html" class="nav-link">Dashboard</a>
+        <a href="/dashboard/deposits.html" class="nav-link active">Deposits</a>
+        <a href="/dashboard/withdrawals.html" class="nav-link">Withdraw</a>
+        <a href="/dashboard/accounthistory.html" class="nav-link">History</a>
+        <button type="button" onclick="SatVaultAuth.logout()" class="nav-link">Logout</button>
+      </nav>
+      <button id="dash-menu-btn" class="dash-menu-btn" aria-label="Menu" aria-expanded="false">☰</button>
+    </div>
+    <nav id="dash-mobile-nav" class="dash-mobile-nav">
+      <a href="/dashboard.html" class="nav-link">Dashboard</a>
+      <a href="/dashboard/deposits.html" class="nav-link active">Deposits</a>
+      <a href="/dashboard/withdrawals.html" class="nav-link">Withdraw</a>
+      <a href="/dashboard/accounthistory.html" class="nav-link">History</a>
+      <button type="button" onclick="SatVaultAuth.logout()" class="nav-link text-left">Logout</button>
+    </nav>
+  </header>
+
+  <main class="page-main page-main--narrow">
+    <div class="page-heading">
+      <h1>Deposit Funds</h1>
+      <p>Fund your <span data-logo-text>PlaidInvest</span> account with BTC or USD.</p>
+    </div>
+
+    <form id="deposit-form" class="app-card p-5 sm:p-6 form-stack">
+      <div>
+        <label class="form-label" for="deposit-amount">Amount (USD)</label>
+        <div class="balance-with-icon">
+          <img data-coin="usd" src="/assets/icons/usd.svg" alt="USD" class="coin-icon coin-icon-sm" width="28" height="28">
+          <input id="deposit-amount" type="number" min="100" step="1" placeholder="500" required class="form-input flex-1">
+        </div>
+      </div>
+
+      <div>
+        <label class="form-label">Payment Method</label>
+        <div class="payment-grid">
+          <label class="app-card payment-option border-primary">
+            <img data-coin="btcPng" src="/assets/icons/btc.png" alt="Bitcoin" width="44" height="44">
+            <div>
+              <p class="font-medium text-white">Bitcoin (BTC)</p>
+              <p class="text-xs text-gray-400">On-chain crypto transfer</p>
+            </div>
+            <input type="radio" name="method" value="btc" checked class="accent-orange-500">
+          </label>
+          <label class="app-card payment-option">
+            <img data-coin="usd" src="/assets/icons/usd.svg" alt="US Dollar" width="44" height="44">
+            <div>
+              <p class="font-medium text-white">US Dollar (USD)</p>
+              <p class="text-xs text-gray-400">Bank wire / card deposit</p>
+            </div>
+            <input type="radio" name="method" value="usd" class="accent-orange-500">
+          </label>
+          <label class="app-card payment-option">
+            <img data-coin="eth" src="/assets/icons/eth.png" alt="Ethereum" width="44" height="44">
+            <div>
+              <p class="font-medium text-white">Ethereum (ETH)</p>
+              <p class="text-xs text-gray-400">ERC-20 transfer</p>
+            </div>
+            <input type="radio" name="method" value="eth" class="accent-orange-500">
+          </label>
+        </div>
+      </div>
+
+      <div class="app-card p-4" style="background:#0f1419">
+        <div class="balance-with-icon mb-2">
+          <img data-coin="btc" src="/assets/icons/btc.svg" alt="BTC" class="coin-icon coin-icon-sm" width="28" height="28">
+          <p class="text-xs text-gray-400">BTC deposit address</p>
+        </div>
+        <p class="wallet-box" data-platform-wallet>bc1qa348fll9sh34h8gxux8dwfu4ygmwpe7v4nmyz2</p>
+        <p class="text-xs text-gray-500 mt-2">Live rate: <span id="btc-live-price" data-btc-price>—</span></p>
+      </div>
+
+      <button type="submit" class="btn-primary w-full py-3">Confirm Deposit</button>
+    </form>
+
+    <p class="text-center text-sm text-gray-500 mt-6">
+      <a href="/dashboard.html" class="text-primary">← Back to dashboard</a>
+    </p>
+  </main>
+
+  <footer class="page-footer">© <span data-year>2026</span> <span data-logo-text>PlaidInvest</span></footer>
+
+  <script src="/js/env.js"></script>
+  <script src="/js/config.js"></script>
+  <script src="/js/price.js"></script>
+  <script src="/js/app.js"></script>
+  <script src="/js/dashboard.js"></script>
+  <script src="/js/wallet-modal.js"></script>
+  <script>
+    document.querySelectorAll("[data-platform-wallet]").forEach(function (el) {
+      if (window.SITE && SITE.platformWallet) el.textContent = SITE.platformWallet;
+    });
+    document.querySelectorAll('input[name="method"]').forEach(function (radio) {
+      radio.addEventListener("change", function () {
+        document.querySelectorAll(".payment-option").forEach(function (el) { el.classList.remove("border-primary"); });
+        radio.closest(".payment-option").classList.add("border-primary");
+      });
+    });
+    document.getElementById("deposit-form").onsubmit = function (e) {
+      e.preventDefault();
+      var amount = Number(document.getElementById("deposit-amount").value);
+      if (!amount || amount < 100) return;
+      WalletModal.showDeposit(amount, function () {
+        var method = document.querySelector('input[name="method"]:checked').value;
+        var asset = method === "btc" ? "BTC" : method === "eth" ? "ETH" : "USD";
+        var completesAt = Date.now() + (10 + Math.random() * 10) * 60 * 1000;
+        var txs = JSON.parse(localStorage.getItem("transactions") || "[]");
+        txs.unshift({
+          date: new Date().toLocaleDateString(),
+          createdAt: Date.now(),
+          completesAt: completesAt,
+          amountUsd: amount,
+          type: "Deposit",
+          asset: asset,
+          amount: "+$" + amount.toLocaleString(),
+          status: "Pending"
+        });
+        localStorage.setItem("transactions", JSON.stringify(txs));
+        window.location.href = "/dashboard/accounthistory.html";
+      });
+    };
+  </script>
+</body>
+</html>

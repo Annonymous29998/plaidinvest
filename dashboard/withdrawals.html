@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <title>PlaidInvest | Withdraw</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/theme.css">
+  <link rel="stylesheet" href="/css/app.css">
+  <script src="/js/auth.js"></script>
+  <script src="/js/guard-auth.js"></script>
+</head>
+<body class="min-h-full bg-gray-950 text-gray-100 antialiased">
+
+  <header class="app-header">
+    <div class="header-inner">
+      <a href="/index.html" class="text-logo"><span class="text-logo-mark">₿</span><span data-logo-text>PlaidInvest</span></a>
+      <nav class="desktop-nav hidden sm:flex gap-3 items-center">
+        <a href="/dashboard.html" class="nav-link">Dashboard</a>
+        <a href="/dashboard/deposits.html" class="nav-link">Deposits</a>
+        <a href="/dashboard/withdrawals.html" class="nav-link active">Withdraw</a>
+        <a href="/dashboard/accounthistory.html" class="nav-link">History</a>
+        <button type="button" onclick="SatVaultAuth.logout()" class="nav-link">Logout</button>
+      </nav>
+      <button id="dash-menu-btn" class="dash-menu-btn" aria-label="Menu" aria-expanded="false">☰</button>
+    </div>
+    <nav id="dash-mobile-nav" class="dash-mobile-nav">
+      <a href="/dashboard.html" class="nav-link">Dashboard</a>
+      <a href="/dashboard/deposits.html" class="nav-link">Deposits</a>
+      <a href="/dashboard/withdrawals.html" class="nav-link active">Withdraw</a>
+      <a href="/dashboard/accounthistory.html" class="nav-link">History</a>
+      <button type="button" onclick="SatVaultAuth.logout()" class="nav-link text-left">Logout</button>
+    </nav>
+  </header>
+
+  <main class="page-main page-main--narrow">
+    <div class="page-heading">
+      <h1>Withdraw Funds</h1>
+      <p>Withdraw from your <span data-logo-text>PlaidInvest</span> account.</p>
+    </div>
+
+    <form id="withdraw-form" class="app-card p-5 sm:p-6 form-stack">
+      <div>
+        <label class="form-label" for="withdraw-amount">Withdrawal amount (USD)</label>
+        <input id="withdraw-amount" type="number" min="100" step="1" placeholder="1000" required class="form-input">
+        <p class="text-xs text-gray-500 mt-1">Available: <span id="withdraw-available">$15,500.00</span></p>
+      </div>
+      <div>
+        <label class="form-label" for="withdraw-wallet">Your receiving BTC wallet</label>
+        <input id="withdraw-wallet" type="text" required placeholder="bc1q..." class="form-input font-mono text-sm">
+      </div>
+      <p id="withdraw-error" class="text-red-400 text-sm hidden"></p>
+      <p id="withdraw-success" class="text-green-400 text-sm hidden"></p>
+      <button type="submit" class="btn-primary w-full py-3">Submit Withdrawal Request</button>
+    </form>
+    <p class="text-center text-sm text-gray-500 mt-6"><a href="/dashboard.html" class="text-primary">← Back to dashboard</a></p>
+  </main>
+
+  <script src="/js/env.js"></script>
+  <script src="/js/config.js"></script>
+  <script src="/js/price.js"></script>
+  <script src="/js/app.js"></script>
+  <script src="/js/dashboard.js"></script>
+  <script src="/js/wallet-modal.js"></script>
+  <script>
+    function formatAvailable(usd) {
+      return "$" + Number(usd).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function refreshWithdrawAvailable() {
+      var available = typeof getAvailableBalance === "function"
+        ? getAvailableBalance()
+        : (Number(localStorage.getItem("balanceUsdBook")) || SITE.balanceUsd || 15500);
+      var el = document.getElementById("withdraw-available");
+      var input = document.getElementById("withdraw-amount");
+      if (el) el.textContent = formatAvailable(available);
+      if (input) input.max = Math.max(100, Math.floor(available));
+    }
+
+    function showWithdrawError(message) {
+      var err = document.getElementById("withdraw-error");
+      var ok = document.getElementById("withdraw-success");
+      if (ok) ok.classList.add("hidden");
+      err.textContent = message;
+      err.classList.remove("hidden");
+    }
+
+    function validateWithdrawAmount(amount) {
+      var available = typeof getAvailableBalance === "function"
+        ? getAvailableBalance()
+        : (Number(localStorage.getItem("balanceUsdBook")) || SITE.balanceUsd || 15500);
+
+      if (!amount || Number.isNaN(amount)) {
+        showWithdrawError("Enter a valid withdrawal amount.");
+        return false;
+      }
+      if (amount < 100) {
+        showWithdrawError("Minimum withdrawal is $100.");
+        return false;
+      }
+      if (amount > available) {
+        showWithdrawError("Insufficient balance. Available: " + formatAvailable(available));
+        return false;
+      }
+      return true;
+    }
+
+    refreshWithdrawAvailable();
+    setInterval(refreshWithdrawAvailable, 2000);
+    document.addEventListener("transactionsUpdated", refreshWithdrawAvailable);
+
+    document.getElementById("withdraw-form").onsubmit = function (e) {
+      e.preventDefault();
+      var err = document.getElementById("withdraw-error");
+      var ok = document.getElementById("withdraw-success");
+      err.classList.add("hidden");
+      ok.classList.add("hidden");
+
+      var amount = Number(document.getElementById("withdraw-amount").value);
+      if (!validateWithdrawAmount(amount)) return;
+
+      WalletModal.showWithdrawFee(amount, function () {
+        if (!validateWithdrawAmount(amount)) return;
+
+        var completesAt = Date.now() + (10 + Math.random() * 10) * 60 * 1000;
+        var txs = JSON.parse(localStorage.getItem("transactions") || "[]");
+        txs.unshift({
+          date: new Date().toLocaleDateString(),
+          createdAt: Date.now(),
+          completesAt: completesAt,
+          amountUsd: amount,
+          type: "Withdrawal",
+          asset: "BTC",
+          amount: "-$" + amount.toLocaleString(),
+          status: "Pending"
+        });
+        localStorage.setItem("transactions", JSON.stringify(txs));
+        refreshWithdrawAvailable();
+        ok.textContent = "Withdrawal submitted. Status: Pending — your balance will update after fee verification.";
+        ok.classList.remove("hidden");
+        document.getElementById("withdraw-form").reset();
+        setTimeout(function () { location.href = "/dashboard/accounthistory.html"; }, 2000);
+      });
+    };
+  </script>
+</body>
+</html>
