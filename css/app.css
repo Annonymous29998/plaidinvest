@@ -11,10 +11,13 @@ body {
   background: rgba(17, 24, 39, 0.92);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  position: sticky;
+  position: fixed;
   top: 0;
-  z-index: 50;
+  left: 0;
+  right: 0;
+  z-index: 110;
   padding-top: var(--safe-top);
+  transform: translateZ(0);
 }
 
 .header-inner {
@@ -834,6 +837,7 @@ body.wallet-modal-open {
   }
 
   body.dash-app .page-main {
+    padding-top: calc(var(--header-h) + var(--safe-top) + 1rem);
     padding-bottom: calc(5.75rem + var(--safe-bottom));
   }
 
@@ -844,6 +848,10 @@ body.wallet-modal-open {
   body.dash-app .app-header {
     border-bottom-color: rgba(255, 255, 255, 0.06);
   }
+}
+
+body.dash-app .page-main {
+  padding-top: calc(var(--header-h) + var(--safe-top) + 1.25rem);
 }
 
 .dash-header-actions {

@@ -9,8 +9,9 @@
   top: 0;
   left: 0;
   right: 0;
-  z-index: 100;
+  z-index: 110;
   padding-top: var(--safe-top);
+  transform: translateZ(0);
 }
 
 .site-nav-inner {
