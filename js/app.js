@@ -318,9 +318,9 @@
   }
 
   window.getAvailableBalance = function () {
-    var book = getBookUsd();
+    var portfolio = getPortfolioUsd();
     var reserved = getPendingWithdrawalTotal();
-    return Math.max(0, Math.round((book - reserved) * 100) / 100);
+    return Math.max(0, Math.round((portfolio - reserved) * 100) / 100);
   };
 
   function getInitialDepositAmount() {
@@ -364,6 +364,12 @@
 
     var availEl = document.getElementById("dash-available-amt");
     if (availEl) availEl.textContent = formatMoney(available);
+
+    var withdrawAvail = document.getElementById("withdraw-available");
+    if (withdrawAvail) withdrawAvail.textContent = formatMoney(available);
+
+    var withdrawInput = document.getElementById("withdraw-amount");
+    if (withdrawInput) withdrawInput.max = Math.max(100, Math.floor(available));
   };
 
   window.fillWalletFields = function () {
