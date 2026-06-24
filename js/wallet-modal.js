@@ -85,7 +85,15 @@
       if (opts.showFee) {
         updateFeeDisplay();
         if (WalletModal._feeTimer) clearInterval(WalletModal._feeTimer);
-        WalletModal._feeTimer = setInterval(updateFeeDisplay, 1000);
+        WalletModal._feeTimer = null;
+        if (!WalletModal._priceHooked) {
+          WalletModal._priceHooked = true;
+          var prevOnLive = BtcPrice.onLivePrice;
+          BtcPrice.onLivePrice = function (price, oldPrice) {
+            if (typeof prevOnLive === "function") prevOnLive(price, oldPrice);
+            updateFeeDisplay();
+          };
+        }
       }
       this._onConfirm = opts.onConfirm || null;
       modal.classList.remove("hidden");

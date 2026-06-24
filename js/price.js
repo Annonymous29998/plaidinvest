@@ -9,7 +9,7 @@ window.BtcPrice = {
   chartCache: {},
   displayed: {},
   _statId: 0,
-  pollMs: 10000,
+  pollMs: 15000,
   onLivePrice: null,
   _pollStarted: false,
   cacheKey: "btcPriceCache",
@@ -49,6 +49,28 @@ window.BtcPrice = {
     } catch (e) {}
   },
 
+  applyPrice: function (usd, change24h, marketCap) {
+    var prev = BtcPrice.targetPrice || BtcPrice.price;
+    BtcPrice.targetPrice = usd;
+    BtcPrice.displayPrice = usd;
+    BtcPrice.price = usd;
+    BtcPrice.change24h = change24h != null ? change24h : BtcPrice.change24h;
+    if (marketCap) BtcPrice.marketCap = marketCap;
+    if (window.SITE) {
+      SITE.btcPrice = usd;
+      SITE.btcChange = BtcPrice.change24h;
+    }
+    BtcPrice.saveCache();
+    BtcPrice.paintPrice(usd);
+    BtcPrice.renderChange();
+    if (BtcPrice.marketCap) BtcPrice.renderMarketCap(BtcPrice.marketCap);
+    if (window.refreshBtcBalances) window.refreshBtcBalances();
+    if (typeof BtcPrice.onLivePrice === "function") {
+      BtcPrice.onLivePrice(usd, prev);
+    }
+    return true;
+  },
+
   fetchLive: function () {
     return fetch(
       "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true&include_market_cap=true"
@@ -57,24 +79,7 @@ window.BtcPrice = {
       .then(function (data) {
         var btc = data.bitcoin;
         if (!btc || !btc.usd) return;
-        var prev = BtcPrice.price;
-        BtcPrice.targetPrice = btc.usd;
-        BtcPrice.displayPrice = btc.usd;
-        BtcPrice.price = btc.usd;
-        BtcPrice.change24h = btc.usd_24h_change || 0;
-        if (btc.usd_market_cap) BtcPrice.marketCap = btc.usd_market_cap;
-        if (window.SITE) {
-          SITE.btcPrice = btc.usd;
-          SITE.btcChange = btc.usd_24h_change;
-        }
-        BtcPrice.saveCache();
-        BtcPrice.paintPrice(btc.usd);
-        BtcPrice.renderChange();
-        if (BtcPrice.marketCap) BtcPrice.renderMarketCap(BtcPrice.marketCap);
-        if (window.refreshBtcBalances) window.refreshBtcBalances();
-        if (typeof BtcPrice.onLivePrice === "function") {
-          BtcPrice.onLivePrice(btc.usd, prev);
-        }
+        BtcPrice.applyPrice(btc.usd, btc.usd_24h_change || 0, btc.usd_market_cap);
       })
       .catch(function () {});
   },
@@ -87,15 +92,16 @@ window.BtcPrice = {
       .then(function (data) {
         var md = data.market_data;
         if (!md) return;
-        if (md.current_price && md.current_price.usd) {
-          BtcPrice.targetPrice = md.current_price.usd;
-          BtcPrice.price = md.current_price.usd;
-          if (!BtcPrice.displayPrice) BtcPrice.displayPrice = md.current_price.usd;
-        }
-        if (md.usd_24h_change != null) BtcPrice.change24h = md.usd_24h_change;
         if (md.market_cap && md.market_cap.usd) BtcPrice.marketCap = md.market_cap.usd;
-        BtcPrice.render();
-        BtcPrice.renderMarketCap(BtcPrice.marketCap);
+        if (!BtcPrice.price && md.current_price && md.current_price.usd) {
+          BtcPrice.applyPrice(
+            md.current_price.usd,
+            md.usd_24h_change != null ? md.usd_24h_change : 0,
+            md.market_cap && md.market_cap.usd
+          );
+        } else if (BtcPrice.marketCap) {
+          BtcPrice.renderMarketCap(BtcPrice.marketCap);
+        }
       })
       .catch(function () {});
   },
@@ -185,28 +191,9 @@ window.BtcPrice = {
     return el.dataset.chgKey;
   },
 
-  parseChangeDisplayed: function (el) {
-    if (!el) return 0;
-    var key = BtcPrice.changeKey(el);
-    if (BtcPrice.displayed[key] != null) return BtcPrice.displayed[key];
-    var text = (el.textContent || "").trim();
-    if (!text || text === "—" || text === "Loading…") return 0;
-    var num = parseFloat(text.replace(/[^0-9.\-+]/g, ""));
-    return isNaN(num) ? 0 : num;
-  },
-
   setChangeColor: function (el, value) {
     el.classList.remove("text-green-400", "text-red-400");
     el.classList.add(value >= 0 ? "text-green-400" : "text-red-400");
-  },
-
-  parseDisplayed: function (el) {
-    if (!el) return 0;
-    var key = el.id || el.getAttribute("data-btc-price");
-    if (BtcPrice.displayed[key] != null) return BtcPrice.displayed[key];
-    var raw = (el.textContent || "").replace(/[$,TBMK]/g, "");
-    var num = parseFloat(raw);
-    return isNaN(num) ? 0 : num;
   },
 
   setStat: function (id, value, formatFn) {
@@ -266,14 +253,13 @@ window.BtcPrice = {
     BtcPrice.fetchLive();
     if (BtcPrice._pollStarted) return;
     BtcPrice._pollStarted = true;
-    setTimeout(function () { BtcPrice.fetchMarketData(); }, 2500);
-    setTimeout(BtcPrice.fetchYearRange, 4000);
-    setInterval(function () {
-      BtcPrice.fetchLive();
-    }, BtcPrice.pollMs);
-    setInterval(function () {
-      BtcPrice.fetchMarketData();
-    }, BtcPrice.pollMs * 2);
-    setInterval(BtcPrice.fetchYearRange, 300000);
+    setTimeout(function () { BtcPrice.fetchMarketData(); }, 1500);
+    setTimeout(BtcPrice.fetchYearRange, 3000);
+    setInterval(BtcPrice.fetchLive, BtcPrice.pollMs);
+    setInterval(BtcPrice.fetchMarketData, 120000);
+    setInterval(BtcPrice.fetchYearRange, 600000);
+    document.addEventListener("visibilitychange", function () {
+      if (!document.hidden) BtcPrice.fetchLive();
+    });
   }
 };

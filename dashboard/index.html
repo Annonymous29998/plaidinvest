@@ -2,9 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="refresh" content="0;url=/dashboard.html">
-  <script>location.replace("/dashboard.html");</script>
   <title>Redirecting…</title>
+  <script src="/js/auth.js"></script>
+  <script>
+    (function () {
+      var target = "/dashboard.html";
+      if (!window.SatVaultAuth || !SatVaultAuth.isLoggedIn()) {
+        location.replace("/login.html?next=" + encodeURIComponent(target));
+        return;
+      }
+      location.replace(target);
+    })();
+  </script>
 </head>
 <body>
   <p><a href="/dashboard.html">Go to dashboard</a></p>

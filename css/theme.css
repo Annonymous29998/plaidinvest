@@ -27,6 +27,10 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+html.auth-blocked body {
+  visibility: hidden;
+}
+
 html,
 body {
   min-height: 100%;

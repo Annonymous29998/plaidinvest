@@ -14,9 +14,9 @@
   <script src="/js/auth.js"></script>
   <script src="/js/guard-auth.js"></script>
 </head>
-<body class="min-h-full bg-gray-950 text-gray-100 antialiased">
+<body class="min-h-full bg-gray-950 text-gray-100 antialiased dash-app">
 
-  <header class="app-header">
+  <header class="app-header dash-header">
     <div class="header-inner">
       <a href="/index.html" class="text-logo">
         <span class="text-logo-mark">₿</span>
@@ -24,15 +24,22 @@
       </a>
       <nav class="desktop-nav hidden sm:flex gap-3 shrink-0 items-center">
         <a href="/dashboard.html" class="nav-link active">Dashboard</a>
+        <a href="/dashboard/plans.html" class="nav-link">Plans</a>
         <a href="/dashboard/deposits.html" class="nav-link">Deposits</a>
         <a href="/dashboard/withdrawals.html" class="nav-link">Withdraw</a>
         <a href="/dashboard/accounthistory.html" class="nav-link">History</a>
         <button type="button" onclick="SatVaultAuth.logout()" class="nav-link">Logout</button>
       </nav>
+      <div class="dash-header-actions dash-mobile-only">
+        <button type="button" class="dash-profile-btn" id="dash-profile-btn" aria-label="Profile">
+          <span data-user-initials>Je</span>
+        </button>
+      </div>
       <button id="dash-menu-btn" class="dash-menu-btn" aria-label="Menu" aria-expanded="false">☰</button>
     </div>
     <nav id="dash-mobile-nav" class="dash-mobile-nav">
       <a href="/dashboard.html" class="nav-link active">Dashboard</a>
+      <a href="/dashboard/plans.html" class="nav-link">Plans</a>
       <a href="/dashboard/deposits.html" class="nav-link">Deposits</a>
       <a href="/dashboard/withdrawals.html" class="nav-link">Withdraw</a>
       <a href="/dashboard/accounthistory.html" class="nav-link">History</a>
@@ -40,27 +47,56 @@
     </nav>
   </header>
 
-  <main class="page-main">
-    <div class="page-heading">
-      <h1>Welcome back, <span data-user-name>Jerry McMillan</span></h1>
+  <main class="page-main dash-home">
+    <div class="dash-welcome dash-mobile-only">
+      <h1>Welcome back, <span data-user-name>Investor</span>!</h1>
+      <p class="dash-welcome-meta"><span id="dash-date">—</span> · <span data-logo-text>PlaidInvest</span> Dashboard</p>
+      <div class="dash-status-row">
+        <span class="dash-market-badge"><span class="dot"></span> Market Open</span>
+        <a href="/dashboard/plans.html" class="dash-invest-cta">⚡ Invest in Bitcoin</a>
+      </div>
+    </div>
+
+    <div class="page-heading dash-desktop-only">
+      <h1>Welcome back, <span data-user-name>Investor</span></h1>
       <p><span data-logo-text>PlaidInvest</span> · Bitcoin Dashboard · Live BTC <span id="dashboard-btc-rate" class="text-primary font-semibold">—</span></p>
     </div>
 
-    <section class="app-card balance-hero">
+    <section class="dash-balance-card dash-mobile-only">
+      <div class="dash-balance-card__head">
+        <div class="dash-balance-card__title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M16 12h.01"/></svg>
+          Account Balance
+        </div>
+        <button type="button" class="dash-balance-hide" id="balance-hide-btn" aria-label="Toggle balance visibility" aria-pressed="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+      <p class="dash-balance-card__amount" data-balance-usd>$15,500.00</p>
+      <p class="dash-balance-card__btc" data-balance-btc>—</p>
+      <div class="dash-available-badge">✓ Available for Withdrawal · <span id="dash-available-amt">$15,500.00</span></div>
+      <p class="dash-updated">Last updated: <span id="dash-last-updated">—</span></p>
+      <div class="dash-balance-actions">
+        <a href="/dashboard/deposits.html" class="dash-bal-btn">+ Deposit</a>
+        <a href="/dashboard/withdrawals.html" class="dash-bal-btn">↗ Withdraw</a>
+      </div>
+    </section>
+
+    <section class="app-card balance-hero dash-desktop-only">
       <p class="text-gray-400 text-sm uppercase tracking-wider mb-3">Current Account Balance</p>
       <div class="balance-grid">
         <div class="balance-with-icon">
           <img data-coin="usd" src="/assets/icons/usd.svg" alt="USD" class="coin-icon coin-icon-lg" width="64" height="64">
           <div>
-            <p class="text-gray-400 text-sm mb-1">USD Balance <span class="text-xs text-gray-500">(live)</span></p>
+            <p class="text-gray-400 text-sm mb-1">USD Value</p>
             <p class="balance-amount-usd text-white" data-balance-usd>$15,500.00</p>
           </div>
         </div>
         <div class="balance-with-icon">
           <img data-coin="btc" src="/assets/icons/btc.svg" alt="BTC" class="coin-icon coin-icon-lg" width="64" height="64">
           <div>
-            <p class="text-gray-400 text-sm mb-1">BTC Balance <span class="text-xs text-gray-500">(live)</span></p>
-            <p class="balance-amount-btc price-pulse" data-balance-btc>—</p>
+            <p class="text-gray-400 text-sm mb-1">BTC Balance</p>
+            <p class="balance-amount-btc" data-balance-btc>—</p>
             <p class="text-gray-500 text-xs mt-2">BTC/USD: <span id="btc-live-price" class="text-primary font-semibold" data-btc-price>Loading…</span> · <span id="btc-live-change" class="font-semibold" data-btc-change>—</span></p>
           </div>
         </div>
@@ -72,7 +108,42 @@
       </div>
     </section>
 
-    <div class="dashboard-stats">
+    <div class="dash-metrics dash-mobile-only">
+      <div class="dash-metric">
+        <div class="dash-metric__head">
+          <span class="dash-metric__label">Total Profit</span>
+          <span class="dash-metric__icon dash-metric__icon--green">$</span>
+        </div>
+        <p class="dash-metric__value" id="dash-stat-profit">$0.00</p>
+        <p class="dash-metric__sub">Portfolio gain</p>
+      </div>
+      <div class="dash-metric">
+        <div class="dash-metric__head">
+          <span class="dash-metric__label">Bonus</span>
+          <span class="dash-metric__icon dash-metric__icon--yellow">🎁</span>
+        </div>
+        <p class="dash-metric__value" id="dash-stat-bonus">$0.00</p>
+        <p class="dash-metric__sub">Rewards &amp; Promotions</p>
+      </div>
+      <div class="dash-metric">
+        <div class="dash-metric__head">
+          <span class="dash-metric__label">Total Deposit</span>
+          <span class="dash-metric__icon dash-metric__icon--blue">↓</span>
+        </div>
+        <p class="dash-metric__value" id="dash-stat-deposit">$0.00</p>
+        <p class="dash-metric__sub">All time</p>
+      </div>
+      <div class="dash-metric">
+        <div class="dash-metric__head">
+          <span class="dash-metric__label">Total Withdrawal</span>
+          <span class="dash-metric__icon dash-metric__icon--red">↑</span>
+        </div>
+        <p class="dash-metric__value" id="dash-stat-withdraw">$0.00</p>
+        <p class="dash-metric__sub">All time</p>
+      </div>
+    </div>
+
+    <div class="dashboard-stats dash-desktop-only">
       <div class="app-card stat-card">
         <p class="text-gray-400 text-xs">Account Balance</p>
         <p class="text-lg sm:text-xl font-semibold mt-1 text-white" data-balance-usd>$15,500.00</p>
@@ -90,11 +161,19 @@
       </div>
     </div>
 
+    <div class="app-card p-4 sm:p-5 dash-mobile-only mb-4">
+      <div class="flex justify-between items-center gap-2 mb-1">
+        <p class="text-gray-400 text-xs">Live BTC Price</p>
+        <p class="text-xs font-semibold" id="btc-change-copy-mobile" data-btc-change>—</p>
+      </div>
+      <p class="text-xl font-bold text-primary" id="btc-price-copy-mobile" data-btc-price>—</p>
+    </div>
+
     <div class="dashboard-grid">
       <div class="app-card p-5 sm:p-6">
         <h2 class="font-bold mb-4 text-white">Investment Plans</h2>
-        <p class="text-gray-400 text-sm mb-4">Browse structured Bitcoin plans on the homepage.</p>
-        <a href="/index.html#plans" class="btn-primary text-sm inline-block">View Plans</a>
+        <p class="text-gray-400 text-sm mb-4">Browse structured Bitcoin investment plans.</p>
+        <a href="/dashboard/plans.html" class="btn-primary text-sm inline-block">View Plans</a>
       </div>
       <div class="app-card p-5 sm:p-6">
         <div class="flex justify-between items-center mb-4">
@@ -115,6 +194,7 @@
   <script src="/js/price.js"></script>
   <script src="/js/app.js"></script>
   <script src="/js/dashboard.js"></script>
+  <script src="/js/mobile-nav.js"></script>
   <script>
     function renderRecentTx() {
       var txs = typeof getTransactions === "function" ? getTransactions() : JSON.parse(localStorage.getItem("transactions") || "[]");
@@ -131,7 +211,21 @@
       }).join("") + "</div>";
     }
     renderRecentTx();
-    document.addEventListener("transactionsUpdated", renderRecentTx);
+    document.addEventListener("transactionsUpdated", function () {
+      renderRecentTx();
+      if (window.refreshDashMobile) refreshDashMobile();
+    });
+
+    if (window.BtcPrice) {
+      var origPaint = BtcPrice.paintPrice;
+      BtcPrice.paintPrice = function (price) {
+        origPaint(price);
+        var mob = document.getElementById("btc-price-copy-mobile");
+        var chg = document.getElementById("btc-change-copy-mobile");
+        if (mob && price) mob.textContent = BtcPrice.formatUsdLive(price);
+        if (chg && BtcPrice.change24h != null) chg.textContent = BtcPrice.formatChange(BtcPrice.change24h);
+      };
+    }
   </script>
 </body>
 </html>

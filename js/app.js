@@ -1,5 +1,5 @@
 (function () {
-  var site = window.SITE || { name: "Jerry McMillan", displayName: "Jerry McMillan", balanceUsd: 15500, btcPrice: 0 };
+  var site = window.SITE || { name: "Investor", displayName: "Investor", balanceUsd: 15500, btcPrice: 0 };
   var defaultBalance = Number(site.balanceUsd);
   if (Number.isNaN(defaultBalance) || defaultBalance <= 0) defaultBalance = 15500;
 
@@ -97,18 +97,18 @@
 
   function ensureHoldings() {
     var holdings = getHoldings();
-    if (holdings != null) return holdings;
     var price = getPrice();
-    if (!price) return 0;
-    holdings = (site.balanceUsd || defaultBalance) / price;
+    if (!price) return holdings != null ? holdings : 0;
+    if (holdings != null) return holdings;
+    holdings = getBookUsd() / price;
     localStorage.setItem(holdingsKey, String(holdings));
     return holdings;
   }
 
-  function getLiveUsd() {
+  function getPortfolioUsd() {
     var price = getPrice();
     var holdings = ensureHoldings();
-    if (!price || !holdings) return site.balanceUsd || defaultBalance;
+    if (!price || !holdings) return getBookUsd();
     return holdings * price;
   }
 
@@ -123,29 +123,20 @@
   function renderBalances() {
     var price = getPrice();
     var holdings = ensureHoldings();
-    var liveUsd = getLiveUsd();
-    var displayBtc = price ? getBookUsd() / price : holdings;
+    var book = getBookUsd();
+    var portfolioUsd = price && holdings ? holdings * price : book;
+    var displayBtc = holdings > 0 ? holdings : (price ? book / price : 0);
 
-    if (price && holdings) {
-      site.balanceUsd = liveUsd;
-      localStorage.setItem("balanceUsd", String(liveUsd));
-    }
-
-    var liveUsdText = formatUsd(liveUsd);
     document.querySelectorAll("[data-balance-usd]").forEach(function (el) {
-      el.textContent = liveUsdText;
+      el.textContent = formatUsd(portfolioUsd);
     });
 
     document.querySelectorAll("[data-balance-btc]").forEach(function (el) {
-      if (!price) {
-        el.textContent = "—";
-        return;
-      }
-      el.textContent = formatBtc(displayBtc);
+      el.textContent = displayBtc > 0 ? formatBtc(displayBtc) : "—";
     });
 
     document.querySelectorAll("[data-deposits-total]").forEach(function (el) {
-      el.textContent = liveUsdText;
+      el.textContent = formatUsd(book);
     });
   }
 
@@ -153,7 +144,7 @@
   if (window.BtcPrice) BtcPrice.start();
   renderBalances();
 
-  var displayName = site.displayName || site.name || "Jerry McMillan";
+  var displayName = site.displayName || site.name || "Investor";
   var platformName = site.platformName || "PlaidInvest";
 
   document.querySelectorAll("[data-logo-text]").forEach(function (el) {
@@ -199,14 +190,13 @@
     if (favicon && site.images.favicon) favicon.href = site.images.favicon;
   }
 
-  document.title = document.title.replace(/^(SatVault|Jerry McMillan|BTC Invest|PlaidInvest)/, platformName);
+  document.title = document.title.replace(/^(SatVault|BTC Invest|PlaidInvest)/, platformName);
 
   window.updateBalance = function (usd) {
     var price = getPrice();
     localStorage.setItem(bookKey, String(usd));
     if (price) {
-      var holdings = usd / price;
-      localStorage.setItem(holdingsKey, String(holdings));
+      localStorage.setItem(holdingsKey, String(usd / price));
     }
     localStorage.setItem("balanceUsd", String(usd));
     site.balanceUsd = usd;
@@ -214,8 +204,10 @@
   };
 
   window.getWalletUsd = function () {
-    return getLiveUsd();
+    return getBookUsd();
   };
+
+  window.getPortfolioUsd = getPortfolioUsd;
 
   function getPendingWithdrawalTotal() {
     return getTransactions().filter(function (tx) {

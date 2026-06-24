@@ -58,7 +58,7 @@
             <a href="#investment" class="btn-ghost px-8 py-3">Learn More</a>
           </div>
           <div class="stat-grid mt-12">
-            <div class="stat-box"><strong data-btc-price class="price-pulse">Loading…</strong><span>BTC / USD (live)</span></div>
+            <div class="stat-box"><strong data-btc-price class="price-pulse">Loading…</strong><span>BTC / USD</span></div>
             <div class="stat-box"><strong data-btc-change>—</strong><span>24h Change</span></div>
             <div class="stat-box"><strong id="hero-mkt-cap">—</strong><span>Market Cap</span></div>
           </div>
@@ -212,7 +212,7 @@
     <!-- Live BTC price (real data, no demo feed) -->
     <section class="section-pad section-alt">
       <h2 class="section-title">Live Bitcoin Price</h2>
-      <p class="section-sub">Real-time BTC/USD from global markets — updates every 20 seconds.</p>
+      <p class="section-sub">Real-time BTC/USD from global markets — updates every 15 seconds.</p>
       <div class="max-w-6xl mx-auto stat-grid">
         <div class="stat-box"><strong id="mkt-price-hero" data-btc-price class="price-pulse">Loading…</strong><span>BTC / USD</span></div>
         <div class="stat-box"><strong id="mkt-change-hero" data-btc-change>—</strong><span>24h Change</span></div>
@@ -293,11 +293,6 @@
         var ph = document.getElementById("mkt-price-hero");
         if (ph && price) BtcPrice.setStat("mkt-price-hero", price, BtcPrice.formatUsd);
       };
-      setInterval(function () {
-        var h = document.getElementById("mkt-high");
-        var hh = document.getElementById("mkt-high-hero");
-        if (h && hh) hh.textContent = h.textContent;
-      }, 500);
     })();
   </script>
 </body>

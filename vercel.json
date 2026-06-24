@@ -1,0 +1,25 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "python3 scripts/generate-env.py",
+  "outputDirectory": ".",
+  "redirects": [
+    { "source": "/dashboard", "destination": "/dashboard.html", "permanent": true },
+    { "source": "/dashboard/", "destination": "/dashboard.html", "permanent": true },
+    { "source": "/login", "destination": "/login.html", "permanent": false }
+  ],
+  "headers": [
+    {
+      "source": "/",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/(.*)\\.html",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate" },
+        { "key": "Pragma", "value": "no-cache" }
+      ]
+    }
+  ]
+}

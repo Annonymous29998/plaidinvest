@@ -3,7 +3,7 @@
   var balance = Number(env.balanceUsd);
   if (Number.isNaN(balance)) balance = 15500;
 
-  var displayName = env.displayName || "Jerry McMillan";
+  var displayName = env.displayName || "Investor";
   var platformName = env.platformName || "PlaidInvest";
 
   window.SITE = {
@@ -11,8 +11,8 @@
     displayName: displayName,
     name: displayName,
     tagline: env.tagline || "Bitcoin Investment Platform",
-    email: env.email || "support@jerrymcmillan.com",
-    domain: "jerrymcmillan.com",
+    email: env.email || "support@plaidinvest.com",
+    domain: "plaidinvest.com",
     year: 2026,
     btcPrice: 0,
     btcChange: 0,
@@ -28,7 +28,6 @@
       btcPng: "/assets/icons/btc.png",
       usd: "/assets/icons/usd.svg",
       eth: "/assets/icons/eth.png",
-      logo: "/assets/logo.svg",
       favicon: "/assets/favicon.svg"
     }
   };

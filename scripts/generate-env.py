@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Read .env and write js/env.js for the static site."""
+"""Read .env (local) or process env (Vercel) and write js/env.js for the static site."""
 import json
-import re
+import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -22,39 +22,57 @@ KEY_MAP = {
 }
 
 
-def parse_env(path: Path) -> dict:
+def _coerce_value(out_key: str, value: str):
+    if out_key in ("balanceUsd", "withdrawalFeeUsd"):
+        try:
+            return int(float(value))
+        except ValueError:
+            return value
+    return value
+
+
+def parse_env_file(path: Path) -> dict:
     data = {}
     if not path.exists():
         return data
     for line in path.read_text(encoding="utf-8").splitlines():
         line = line.strip()
-        if not line or line.startswith("#"):
-            continue
-        if "=" not in line:
+        if not line or line.startswith("#") or "=" not in line:
             continue
         key, value = line.split("=", 1)
         key = key.strip()
         value = value.strip().strip('"').strip("'")
         out_key = KEY_MAP.get(key, key)
-        if out_key in ("balanceUsd", "withdrawalFeeUsd"):
-            try:
-                data[out_key] = int(float(value))
-            except ValueError:
-                data[out_key] = value
-        else:
-            data[out_key] = value
+        data[out_key] = _coerce_value(out_key, value)
+    return data
+
+
+def parse_env_os() -> dict:
+    """Read Vercel / CI environment variables."""
+    data = {}
+    for env_key, out_key in KEY_MAP.items():
+        value = os.environ.get(env_key)
+        if value:
+            data[out_key] = _coerce_value(out_key, value)
+    return data
+
+
+def parse_env() -> dict:
+    data = parse_env_file(ENV_FILE)
+    if not data:
+        data = parse_env_os()
     return data
 
 
 def main() -> None:
-    env = parse_env(ENV_FILE)
+    env = parse_env()
     if not env:
-        print("Warning: .env missing or empty — using defaults in config.js only")
+        print("Warning: no .env or env vars — config.js defaults will be used")
         if OUT_FILE.exists():
             OUT_FILE.unlink()
         return
     OUT_FILE.parent.mkdir(parents=True, exist_ok=True)
-    body = "// Auto-generated from .env — run: python3 scripts/generate-env.py\n"
+    body = "// Auto-generated at build time — do not edit\n"
     body += "window.ENV = " + json.dumps(env, indent=2) + ";\n"
     OUT_FILE.write_text(body, encoding="utf-8")
     print("Wrote", OUT_FILE.relative_to(ROOT))
