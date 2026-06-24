@@ -291,7 +291,46 @@
     return "$" + Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
+  function parseTxAmount(tx) {
+    if (tx && tx.amountUsd != null) return Math.abs(Number(tx.amountUsd)) || 0;
+    var raw = String((tx && tx.amount) || "").replace(/[^0-9.\-]/g, "");
+    var n = parseFloat(raw);
+    return isNaN(n) ? 0 : Math.abs(n);
+  }
+
+  function getTransactions() {
+    try {
+      return JSON.parse(localStorage.getItem("transactions") || "[]");
+    } catch (e) {
+      return [];
+    }
+  }
+
+  window.getTransactions = getTransactions;
+
+  function getPendingWithdrawalTotal() {
+    return getTransactions().filter(function (tx) {
+      var status = ((tx && tx.status) || "").toLowerCase();
+      return tx && tx.type === "Withdrawal" && (status === "pending" || status === "processing");
+    }).reduce(function (sum, tx) {
+      return sum + parseTxAmount(tx);
+    }, 0);
+  }
+
+  window.getAvailableBalance = function () {
+    var book = getBookUsd();
+    var reserved = getPendingWithdrawalTotal();
+    return Math.max(0, Math.round((book - reserved) * 100) / 100);
+  };
+
+  function getInitialDepositAmount() {
+    var seed = window.SITE && SITE.initialDeposit;
+    var amount = seed && Number(seed.amountUsd);
+    return amount > 0 ? amount : defaultBalance;
+  }
+
   window.renderDashboardStats = function () {
+    ensureInitialDepositTransaction();
     var txs = getTransactions();
     var deposit = 0;
     var withdraw = 0;
@@ -304,6 +343,10 @@
       if (tx.type === "Deposit") deposit += amt;
       else if (tx.type === "Withdrawal") withdraw += amt;
     });
+
+    if (deposit <= 0) {
+      deposit = getInitialDepositAmount();
+    }
 
     var available = getAvailableBalance();
     var profit = getTotalProfit();
@@ -335,7 +378,6 @@
   };
 
   fillWalletFields();
-  renderDashboardStats();
   document.addEventListener("transactionsUpdated", renderDashboardStats);
 
   if (window.BtcPrice) {
@@ -345,36 +387,6 @@
       renderBalances();
       renderDashboardStats();
     };
-  }
-
-  function getPendingWithdrawalTotal() {
-    return getTransactions().filter(function (tx) {
-      var status = ((tx && tx.status) || "").toLowerCase();
-      return tx && tx.type === "Withdrawal" && (status === "pending" || status === "processing");
-    }).reduce(function (sum, tx) {
-      return sum + parseTxAmount(tx);
-    }, 0);
-  }
-
-  window.getAvailableBalance = function () {
-    var book = getBookUsd();
-    var reserved = getPendingWithdrawalTotal();
-    return Math.max(0, Math.round((book - reserved) * 100) / 100);
-  };
-
-  window.getTransactions = function () {
-    try {
-      return JSON.parse(localStorage.getItem("transactions") || "[]");
-    } catch (e) {
-      return [];
-    }
-  };
-
-  function parseTxAmount(tx) {
-    if (tx && tx.amountUsd != null) return Math.abs(Number(tx.amountUsd)) || 0;
-    var raw = String((tx && tx.amount) || "").replace(/[^0-9.\-]/g, "");
-    var n = parseFloat(raw);
-    return isNaN(n) ? 0 : Math.abs(n);
   }
 
   function processPendingTransactions() {
@@ -430,8 +442,8 @@
 
   window.processPendingTransactions = processPendingTransactions;
   processPendingTransactions();
+  renderDashboardStats();
   if (initialDepositSeeded) {
-    renderDashboardStats();
     document.dispatchEvent(new CustomEvent("transactionsUpdated"));
   }
   setInterval(processPendingTransactions, 30000);
