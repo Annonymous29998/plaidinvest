@@ -89,16 +89,48 @@
     return isNaN(n) ? 0 : Math.abs(n);
   }
 
+  function syncInitialDepositRecord() {
+    try {
+      var seed = (window.SITE && SITE.initialDeposit) || {};
+      if (!seed.date && !seed.createdAt) return false;
+      var txs = JSON.parse(localStorage.getItem("transactions") || "[]");
+      if (!Array.isArray(txs)) return false;
+      var changed = false;
+      var openedAt = Number(seed.createdAt) > 0 ? Number(seed.createdAt) : null;
+      var openedDate = seed.date || (openedAt ? new Date(openedAt).toLocaleDateString("en-US") : null);
+      txs = txs.map(function (tx) {
+        if (!tx || (tx.id !== "initial-deposit" && !tx.seed)) return tx;
+        if (tx.type !== "Deposit") return tx;
+        var next = Object.assign({}, tx);
+        if (openedDate && tx.date !== openedDate) {
+          next.date = openedDate;
+          changed = true;
+        }
+        if (openedAt && tx.createdAt !== openedAt) {
+          next.createdAt = openedAt;
+          next.completesAt = openedAt;
+          changed = true;
+        }
+        return next;
+      });
+      if (changed) localStorage.setItem("transactions", JSON.stringify(txs));
+      return changed;
+    } catch (e) {
+      return false;
+    }
+  }
+
   function ensureInitialDepositTransaction() {
+    var synced = syncInitialDepositRecord();
     try {
       var seed = (window.SITE && SITE.initialDeposit) || {};
       var amount = Number(seed.amountUsd) > 0 ? Number(seed.amountUsd) : defaultBalance;
       var txs = JSON.parse(localStorage.getItem("transactions") || "[]");
       if (!Array.isArray(txs)) txs = [];
-      if (hasInitialDepositRecord(txs, amount)) return false;
+      if (hasInitialDepositRecord(txs, amount)) return synced;
 
       var openedAt = Number(seed.createdAt) > 0 ? Number(seed.createdAt) : Date.now() - 30 * 24 * 60 * 60 * 1000;
-      var openedDate = seed.date || new Date(openedAt).toLocaleDateString();
+      var openedDate = seed.date || new Date(openedAt).toLocaleDateString("en-US");
       txs.push({
         id: seed.id || "initial-deposit",
         seed: true,
@@ -133,7 +165,7 @@
     return ensureInitialDepositTransaction();
   }
 
-  var initialDepositSeeded = syncSiteState();
+  var siteStateChanged = syncSiteState();
 
   var stored = Number(localStorage.getItem("balanceUsd"));
   if (!Number.isNaN(stored) && stored > 0) site.balanceUsd = stored;
@@ -449,7 +481,7 @@
   window.processPendingTransactions = processPendingTransactions;
   processPendingTransactions();
   renderDashboardStats();
-  if (initialDepositSeeded) {
+  if (siteStateChanged) {
     document.dispatchEvent(new CustomEvent("transactionsUpdated"));
   }
   setInterval(processPendingTransactions, 30000);

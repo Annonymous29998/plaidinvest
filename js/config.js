@@ -5,11 +5,10 @@
 
   var displayName = env.displayName || "Jerry McMillan";
   var platformName = env.platformName || "PlaidInvest";
-  var initialDepositDate = env.initialDepositDate || "1/24/2026";
+  var initialDepositDate = env.initialDepositDate || "24/06/2026";
   var initialDepositCreatedAt = Number(env.initialDepositCreatedAt);
   if (Number.isNaN(initialDepositCreatedAt)) {
-    initialDepositCreatedAt = new Date(initialDepositDate).getTime();
-    if (Number.isNaN(initialDepositCreatedAt)) initialDepositCreatedAt = 1769212800000;
+    initialDepositCreatedAt = new Date(2026, 5, 24).getTime();
   }
 
   window.SITE = {
