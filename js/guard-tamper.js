@@ -3,8 +3,7 @@
     transactions: true,
     balanceUsdBook: true,
     balanceUsd: true,
-    balanceBtcHoldings: true,
-    authSession: true
+    balanceBtcHoldings: true
   };
   var SEAL_KEY = "__integritySeal";
   var allowDepth = 0;
@@ -19,8 +18,7 @@
       transactions: nativeGet.call(localStorage, "transactions"),
       balanceUsdBook: nativeGet.call(localStorage, "balanceUsdBook"),
       balanceUsd: nativeGet.call(localStorage, "balanceUsd"),
-      balanceBtcHoldings: nativeGet.call(localStorage, "balanceBtcHoldings"),
-      authSession: nativeGet.call(localStorage, "authSession")
+      balanceBtcHoldings: nativeGet.call(localStorage, "balanceBtcHoldings")
     };
   }
 
@@ -82,6 +80,7 @@
   }
 
   function enforceIntegrity() {
+    if (bootstrapping) return;
     if (window.__reconcileTransactions) window.__reconcileTransactions();
     if (isTampered()) {
       restoreFromSeal();
@@ -141,12 +140,13 @@
     };
   } catch (e) {}
 
-  document.addEventListener("DOMContentLoaded", function () {
-    if (bootstrapping) {
-      bootstrapping = false;
-      sealStorage();
-    }
-  });
+  function finishBootstrap() {
+    if (!bootstrapping) return;
+    bootstrapping = false;
+    sealStorage();
+  }
+
+  document.addEventListener("DOMContentLoaded", finishBootstrap);
 
   window.addEventListener("focus", enforceIntegrity);
   document.addEventListener("visibilitychange", function () {
