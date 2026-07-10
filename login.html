@@ -14,10 +14,6 @@
   <script src="/js/config.js"></script>
   <script src="/js/guard-tamper.js"></script>
   <script src="/js/auth.js"></script>
-  <script>
-    document.documentElement.classList.remove("auth-blocked");
-    SatVaultAuth.requireGuest();
-  </script>
 </head>
 <body class="page-login min-h-full bg-gray-950 text-gray-100 antialiased" style="background:#0b0f14;color:#f3f4f6">
 
@@ -62,34 +58,6 @@
   </main>
 
   <script src="/js/app.js"></script>
-  <script>
-    document.getElementById("login-form").onsubmit = function (e) {
-      e.preventDefault();
-      var email = document.getElementById("email").value.trim();
-      var password = document.getElementById("password").value;
-      var err = document.getElementById("login-error");
-      if (!SatVaultAuth.login(email, password)) {
-        err.textContent = "Invalid email or password.";
-        err.classList.remove("hidden");
-        return;
-      }
-      var params = new URLSearchParams(location.search);
-      var next = params.get("next") || "/dashboard.html";
-      if (!next.startsWith("/") || next.startsWith("//")) next = "/dashboard.html";
-      location.href = next;
-    };
-
-    (function () {
-      var input = document.getElementById("password");
-      var toggle = document.getElementById("password-toggle");
-      toggle.addEventListener("click", function () {
-        var visible = input.type === "text";
-        input.type = visible ? "password" : "text";
-        toggle.classList.toggle("is-visible", !visible);
-        toggle.setAttribute("aria-pressed", String(!visible));
-        toggle.setAttribute("aria-label", visible ? "Show password" : "Hide password");
-      });
-    })();
-  </script>
+  <script src="/js/login-page.js"></script>
 </body>
 </html>

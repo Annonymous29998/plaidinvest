@@ -287,16 +287,5 @@
   <script src="/js/price.js"></script>
   <script src="/js/app.js"></script>
   <script src="/js/home.js"></script>
-  <script>
-    SatVaultAuth.applyPublicNav();
-    (function () {
-      var chartHandler = BtcPrice.onLivePrice;
-      BtcPrice.onLivePrice = function (price, prev) {
-        if (typeof chartHandler === "function") chartHandler(price, prev);
-        var ph = document.getElementById("mkt-price-hero");
-        if (ph && price) BtcPrice.setStat("mkt-price-hero", price, BtcPrice.formatUsd);
-      };
-    })();
-  </script>
 </body>
 </html>

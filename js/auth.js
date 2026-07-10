@@ -98,3 +98,10 @@ window.SatVaultAuth = {
     });
   }
 };
+
+document.addEventListener("click", function (e) {
+  var btn = e.target.closest("[data-logout]");
+  if (!btn || !window.SatVaultAuth) return;
+  e.preventDefault();
+  SatVaultAuth.logout();
+});

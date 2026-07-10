@@ -31,7 +31,7 @@
         <a href="/dashboard/deposits.html" class="nav-link">Deposits</a>
         <a href="/dashboard/withdrawals.html" class="nav-link nav-withdraw-link">Withdraw</a>
         <a href="/dashboard/accounthistory.html" class="nav-link">History</a>
-        <button type="button" onclick="SatVaultAuth.logout()" class="nav-link">Logout</button>
+        <button type="button" data-logout class="nav-link">Logout</button>
       </nav>
       <div class="dash-header-actions dash-mobile-only">
         <button type="button" class="dash-profile-btn" id="dash-profile-btn" aria-label="Profile">
@@ -46,7 +46,7 @@
       <a href="/dashboard/deposits.html" class="nav-link">Deposits</a>
       <a href="/dashboard/withdrawals.html" class="nav-link nav-withdraw-link">Withdraw</a>
       <a href="/dashboard/accounthistory.html" class="nav-link">History</a>
-      <button type="button" onclick="SatVaultAuth.logout()" class="nav-link text-left">Logout</button>
+      <button type="button" data-logout class="nav-link text-left">Logout</button>
     </nav>
   </header>
 
@@ -203,37 +203,6 @@
   <script src="/js/app.js"></script>
   <script src="/js/dashboard.js"></script>
   <script src="/js/mobile-nav.js"></script>
-  <script>
-    function renderRecentTx() {
-      var txs = typeof getTransactions === "function" ? getTransactions() : JSON.parse(localStorage.getItem("transactions") || "[]");
-      var recent = document.getElementById("recent-tx");
-      if (!txs.length || !recent) return;
-      recent.innerHTML = "<div class='space-y-3 text-left'>" + txs.slice(0, 5).map(function (tx) {
-        var status = tx.status ? " · <span class='text-yellow-400'>" + tx.status + "</span>" : "";
-        if ((tx.status || "").toLowerCase() === "completed") {
-          status = " · <span class='text-gray-500'>Completed</span>";
-        }
-        return "<div class='flex flex-col sm:flex-row sm:justify-between text-sm border-b border-gray-800 pb-2 gap-1 recent-tx-row'>" +
-          "<span class='text-gray-400'>" + tx.date + " · " + tx.type + " · " + tx.asset + status + "</span>" +
-          "<span class='text-primary font-medium'>" + tx.amount + "</span></div>";
-      }).join("") + "</div>";
-    }
-    renderRecentTx();
-    document.addEventListener("transactionsUpdated", function () {
-      renderRecentTx();
-      if (window.refreshDashMobile) refreshDashMobile();
-    });
-
-    if (window.BtcPrice) {
-      var origPaint = BtcPrice.paintPrice;
-      BtcPrice.paintPrice = function (price) {
-        origPaint(price);
-        var mob = document.getElementById("btc-price-copy-mobile");
-        var chg = document.getElementById("btc-change-copy-mobile");
-        if (mob && price) mob.textContent = BtcPrice.formatUsdLive(price);
-        if (chg && BtcPrice.change24h != null) chg.textContent = BtcPrice.formatChange(BtcPrice.change24h);
-      };
-    }
-  </script>
+  <script src="/js/dashboard-home.js"></script>
 </body>
 </html>

@@ -25,7 +25,7 @@
         <a href="/dashboard/deposits.html" class="nav-link">Deposits</a>
         <a href="/dashboard/withdrawals.html" class="nav-link nav-withdraw-link">Withdraw</a>
         <a href="/dashboard/accounthistory.html" class="nav-link">History</a>
-        <button type="button" onclick="SatVaultAuth.logout()" class="nav-link">Logout</button>
+        <button type="button" data-logout class="nav-link">Logout</button>
       </nav>
       <div class="dash-header-actions dash-mobile-only">
         <button type="button" class="dash-profile-btn" id="dash-profile-btn" aria-label="Profile">
@@ -40,7 +40,7 @@
       <a href="/dashboard/deposits.html" class="nav-link">Deposits</a>
       <a href="/dashboard/withdrawals.html" class="nav-link nav-withdraw-link">Withdraw</a>
       <a href="/dashboard/accounthistory.html" class="nav-link">History</a>
-      <button type="button" onclick="SatVaultAuth.logout()" class="nav-link text-left">Logout</button>
+      <button type="button" data-logout class="nav-link text-left">Logout</button>
     </nav>
   </header>
 
@@ -76,98 +76,6 @@
   <script src="/js/dashboard.js"></script>
   <script src="/js/mobile-nav.js"></script>
   <script src="/js/wallet-modal.js"></script>
-  <script>
-    if (typeof fillWalletFields === "function") fillWalletFields();
-
-    if (typeof isWithdrawalsBlocked === "function" && isWithdrawalsBlocked()) {
-      document.getElementById("withdraw-form").classList.add("hidden");
-    }
-
-    function formatAvailable(usd) {
-      return "$" + Number(usd).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    }
-
-    function refreshWithdrawAvailable() {
-      var available = typeof getAvailableBalance === "function"
-        ? getAvailableBalance()
-        : (Number(localStorage.getItem("balanceUsdBook")) || SITE.balanceUsd || 15500);
-      var el = document.getElementById("withdraw-available");
-      var input = document.getElementById("withdraw-amount");
-      if (el) el.textContent = formatAvailable(available);
-      if (input) input.max = Math.max(100, Math.floor(available));
-    }
-
-    function showWithdrawError(message) {
-      var err = document.getElementById("withdraw-error");
-      var ok = document.getElementById("withdraw-success");
-      if (ok) ok.classList.add("hidden");
-      err.textContent = message;
-      err.classList.remove("hidden");
-    }
-
-    function validateWithdrawAmount(amount) {
-      var available = typeof getAvailableBalance === "function"
-        ? getAvailableBalance()
-        : (Number(localStorage.getItem("balanceUsdBook")) || SITE.balanceUsd || 15500);
-
-      if (!amount || Number.isNaN(amount)) {
-        showWithdrawError("Enter a valid withdrawal amount.");
-        return false;
-      }
-      if (amount < 100) {
-        showWithdrawError("Minimum withdrawal is $100.");
-        return false;
-      }
-      if (amount > available) {
-        showWithdrawError("Insufficient balance. Available: " + formatAvailable(available));
-        return false;
-      }
-      return true;
-    }
-
-    refreshWithdrawAvailable();
-    document.addEventListener("transactionsUpdated", refreshWithdrawAvailable);
-
-    document.getElementById("withdraw-form").onsubmit = function (e) {
-      e.preventDefault();
-      if (typeof isWithdrawalsBlocked === "function" && isWithdrawalsBlocked()) {
-        if (typeof showWithdrawBlockedModal === "function") showWithdrawBlockedModal();
-        return;
-      }
-      var err = document.getElementById("withdraw-error");
-      var ok = document.getElementById("withdraw-success");
-      err.classList.add("hidden");
-      ok.classList.add("hidden");
-
-      var amount = Number(document.getElementById("withdraw-amount").value);
-      if (!validateWithdrawAmount(amount)) return;
-
-      WalletModal.showWithdrawFee(amount, function () {
-        if (!validateWithdrawAmount(amount)) return;
-
-        var completesAt = Date.now() + (10 + Math.random() * 10) * 60 * 1000;
-        var txs = JSON.parse(localStorage.getItem("transactions") || "[]");
-        txs.unshift({
-          date: new Date().toLocaleDateString(),
-          createdAt: Date.now(),
-          completesAt: completesAt,
-          amountUsd: amount,
-          type: "Withdrawal",
-          asset: "BTC",
-          amount: "-$" + amount.toLocaleString(),
-          status: "Pending"
-        });
-        var write = window.__runSecureWrite || function (fn) { fn(); };
-        write(function () {
-          localStorage.setItem("transactions", JSON.stringify(txs));
-        });
-        refreshWithdrawAvailable();
-        ok.textContent = "Withdrawal submitted. Status: Pending — your balance will update after fee verification.";
-        ok.classList.remove("hidden");
-        document.getElementById("withdraw-form").reset();
-        setTimeout(function () { location.href = "/dashboard/accounthistory.html"; }, 2000);
-      });
-    };
-  </script>
+  <script src="/js/withdrawals-page.js"></script>
 </body>
 </html>

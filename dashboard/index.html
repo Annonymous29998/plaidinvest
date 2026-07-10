@@ -5,16 +5,7 @@
   <title>Redirecting…</title>
   <script src="/js/guard-tamper.js"></script>
   <script src="/js/auth.js"></script>
-  <script>
-    (function () {
-      var target = "/dashboard.html";
-      if (!window.SatVaultAuth || !SatVaultAuth.isLoggedIn()) {
-        location.replace("/login.html?next=" + encodeURIComponent(target));
-        return;
-      }
-      location.replace(target);
-    })();
-  </script>
+  <script src="/js/dashboard-redirect.js"></script>
 </head>
 <body>
   <p><a href="/dashboard.html">Go to dashboard</a></p>

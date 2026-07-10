@@ -181,7 +181,7 @@
             '<h2 id="dash-profile-title" class="dash-profile-name" data-user-name>Jerry McMillan</h2>' +
             '<p class="dash-profile-email" data-user-email>—</p>' +
           "</div>" +
-          '<button type="button" class="dash-sheet-link dash-sheet-link--danger" onclick="SatVaultAuth.logout()">Log out</button>' +
+          '<button type="button" class="dash-sheet-link dash-sheet-link--danger" data-logout>Log out</button>' +
           '<button type="button" class="dash-sheet-cancel" data-sheet-close>Close</button>' +
         "</div>" +
       "</div>";

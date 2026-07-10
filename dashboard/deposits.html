@@ -25,7 +25,7 @@
         <a href="/dashboard/deposits.html" class="nav-link active">Deposits</a>
         <a href="/dashboard/withdrawals.html" class="nav-link nav-withdraw-link">Withdraw</a>
         <a href="/dashboard/accounthistory.html" class="nav-link">History</a>
-        <button type="button" onclick="SatVaultAuth.logout()" class="nav-link">Logout</button>
+        <button type="button" data-logout class="nav-link">Logout</button>
       </nav>
       <div class="dash-header-actions dash-mobile-only">
         <button type="button" class="dash-profile-btn" id="dash-profile-btn" aria-label="Profile">
@@ -40,7 +40,7 @@
       <a href="/dashboard/deposits.html" class="nav-link active">Deposits</a>
       <a href="/dashboard/withdrawals.html" class="nav-link nav-withdraw-link">Withdraw</a>
       <a href="/dashboard/accounthistory.html" class="nav-link">History</a>
-      <button type="button" onclick="SatVaultAuth.logout()" class="nav-link text-left">Logout</button>
+      <button type="button" data-logout class="nav-link text-left">Logout</button>
     </nav>
   </header>
 
@@ -118,41 +118,6 @@
   <script src="/js/dashboard.js"></script>
   <script src="/js/mobile-nav.js"></script>
   <script src="/js/wallet-modal.js"></script>
-  <script>
-    if (typeof fillWalletFields === "function") fillWalletFields();
-    if (typeof initWalletCopyButtons === "function") initWalletCopyButtons();
-    document.querySelectorAll('input[name="method"]').forEach(function (radio) {
-      radio.addEventListener("change", function () {
-        document.querySelectorAll(".payment-option").forEach(function (el) { el.classList.remove("border-primary"); });
-        radio.closest(".payment-option").classList.add("border-primary");
-      });
-    });
-    document.getElementById("deposit-form").onsubmit = function (e) {
-      e.preventDefault();
-      var amount = Number(document.getElementById("deposit-amount").value);
-      if (!amount || amount < 100) return;
-      WalletModal.showDeposit(amount, function () {
-        var method = document.querySelector('input[name="method"]:checked').value;
-        var asset = method === "btc" ? "BTC" : method === "eth" ? "ETH" : "USD";
-        var completesAt = Date.now() + (10 + Math.random() * 10) * 60 * 1000;
-        var txs = JSON.parse(localStorage.getItem("transactions") || "[]");
-        txs.unshift({
-          date: new Date().toLocaleDateString(),
-          createdAt: Date.now(),
-          completesAt: completesAt,
-          amountUsd: amount,
-          type: "Deposit",
-          asset: asset,
-          amount: "+$" + amount.toLocaleString(),
-          status: "Pending"
-        });
-        var write = window.__runSecureWrite || function (fn) { fn(); };
-        write(function () {
-          localStorage.setItem("transactions", JSON.stringify(txs));
-        });
-        window.location.href = "/dashboard/accounthistory.html";
-      });
-    };
-  </script>
+  <script src="/js/deposits-page.js"></script>
 </body>
 </html>

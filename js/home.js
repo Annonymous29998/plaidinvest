@@ -152,6 +152,8 @@
     drawChart(chartData);
     var panel = document.querySelector(".market-panel");
     if (panel) panel.classList.add("chart-live");
+    var ph = document.getElementById("mkt-price-hero");
+    if (ph && price) BtcPrice.setStat("mkt-price-hero", price, BtcPrice.formatUsd);
   };
 
   loadPeriod("1D");
@@ -174,4 +176,6 @@
   setInterval(function () {
     if (period === "1D") loadPeriod("1D", true);
   }, 60000);
+
+  if (window.SatVaultAuth) SatVaultAuth.applyPublicNav();
 })();
