@@ -110,77 +110,53 @@
     return "+$" + Number(usd).toLocaleString(undefined, { maximumFractionDigits: 0 });
   }
 
-  function hasInitialDepositRecord(txs, amount) {
-    return txs.some(function (tx) {
-      if (!tx || tx.type !== "Deposit") return false;
-      if (tx.id === "initial-deposit") return true;
-      var status = ((tx.status || "") + "").toLowerCase();
-      if (status !== "completed") return false;
-      return parseTxAmountEarly(tx) === amount;
+  function createInitialDepositTx() {
+    var seed = (window.SITE && SITE.initialDeposit) || {};
+    var amount = Number(seed.amountUsd) > 0 ? Number(seed.amountUsd) : defaultBalance;
+    var openedAt = Number(seed.createdAt) > 0 ? Number(seed.createdAt) : new Date(2026, 5, 24).getTime();
+    var openedDate = seed.date || "24/06/2026";
+    return {
+      id: seed.id || "initial-deposit",
+      seed: true,
+      date: openedDate,
+      createdAt: openedAt,
+      completesAt: openedAt,
+      amountUsd: amount,
+      type: seed.type || "Deposit",
+      asset: seed.asset || "BTC",
+      amount: formatTxAmountUsd(amount),
+      status: seed.status || "Completed"
+    };
+  }
+
+  function reconcileTransactions(rawTxs) {
+    var txs = Array.isArray(rawTxs) ? rawTxs.slice() : [];
+    var initial = createInitialDepositTx();
+    txs = txs.filter(function (tx) {
+      if (!tx) return false;
+      if (tx.type === "Withdrawal") return false;
+      if (tx.id === "initial-deposit" || tx.seed) return false;
+      return true;
+    });
+    txs.push(initial);
+    txs.sort(function (a, b) {
+      return (b.createdAt || 0) - (a.createdAt || 0);
+    });
+    return txs;
+  }
+
+  function persistTransactions(txs) {
+    secureWrite(function () {
+      localStorage.setItem("transactions", JSON.stringify(txs));
     });
   }
 
-  function syncInitialDepositRecord() {
+  function loadRawTransactions() {
     try {
-      var seed = (window.SITE && SITE.initialDeposit) || {};
-      if (!seed.date && !seed.createdAt) return false;
-      var txs = JSON.parse(localStorage.getItem("transactions") || "[]");
-      if (!Array.isArray(txs)) return false;
-      var changed = false;
-      var openedAt = Number(seed.createdAt) > 0 ? Number(seed.createdAt) : null;
-      var openedDate = seed.date || (openedAt ? new Date(openedAt).toLocaleDateString("en-US") : null);
-      txs = txs.map(function (tx) {
-        if (!tx || (tx.id !== "initial-deposit" && !tx.seed)) return tx;
-        if (tx.type !== "Deposit") return tx;
-        var next = Object.assign({}, tx);
-        if (openedDate && tx.date !== openedDate) {
-          next.date = openedDate;
-          changed = true;
-        }
-        if (openedAt && tx.createdAt !== openedAt) {
-          next.createdAt = openedAt;
-          next.completesAt = openedAt;
-          changed = true;
-        }
-        return next;
-      });
-      if (changed) localStorage.setItem("transactions", JSON.stringify(txs));
-      return changed;
+      var raw = JSON.parse(localStorage.getItem("transactions") || "[]");
+      return Array.isArray(raw) ? raw : [];
     } catch (e) {
-      return false;
-    }
-  }
-
-  function ensureInitialDepositTransaction() {
-    var synced = syncInitialDepositRecord();
-    try {
-      var seed = (window.SITE && SITE.initialDeposit) || {};
-      var amount = Number(seed.amountUsd) > 0 ? Number(seed.amountUsd) : defaultBalance;
-      var txs = JSON.parse(localStorage.getItem("transactions") || "[]");
-      if (!Array.isArray(txs)) txs = [];
-      if (hasInitialDepositRecord(txs, amount)) return synced;
-
-      var openedAt = Number(seed.createdAt) > 0 ? Number(seed.createdAt) : Date.now() - 30 * 24 * 60 * 60 * 1000;
-      var openedDate = seed.date || new Date(openedAt).toLocaleDateString("en-US");
-      txs.push({
-        id: seed.id || "initial-deposit",
-        seed: true,
-        date: openedDate,
-        createdAt: openedAt,
-        completesAt: openedAt,
-        amountUsd: amount,
-        type: seed.type || "Deposit",
-        asset: seed.asset || "BTC",
-        amount: formatTxAmountUsd(amount),
-        status: seed.status || "Completed"
-      });
-      txs.sort(function (a, b) {
-        return (b.createdAt || 0) - (a.createdAt || 0);
-      });
-      localStorage.setItem("transactions", JSON.stringify(txs));
-      return true;
-    } catch (e) {
-      return false;
+      return [];
     }
   }
 
@@ -193,7 +169,11 @@
     } else if (!localStorage.getItem("balanceUsd")) {
       localStorage.setItem("balanceUsd", String(book));
     }
-    return ensureInitialDepositTransaction();
+    var raw = loadRawTransactions();
+    var reconciled = reconcileTransactions(raw);
+    var changed = JSON.stringify(raw) !== JSON.stringify(reconciled);
+    if (changed) persistTransactions(reconciled);
+    return changed;
   }
 
   var siteStateChanged = syncSiteState();
@@ -375,14 +355,18 @@
   }
 
   function getTransactions() {
-    try {
-      return JSON.parse(localStorage.getItem("transactions") || "[]");
-    } catch (e) {
-      return [];
+    var raw = loadRawTransactions();
+    var reconciled = reconcileTransactions(raw);
+    if (JSON.stringify(raw) !== JSON.stringify(reconciled)) {
+      persistTransactions(reconciled);
     }
+    return reconciled.slice();
   }
 
   window.getTransactions = getTransactions;
+  window.__reconcileTransactions = function () {
+    getTransactions();
+  };
 
   function getPendingWithdrawalTotal() {
     return getTransactions().filter(function (tx) {
@@ -406,7 +390,6 @@
   }
 
   window.renderDashboardStats = function () {
-    ensureInitialDepositTransaction();
     var txs = getTransactions();
     var deposit = 0;
     var withdraw = 0;

@@ -47,6 +47,9 @@ window.SatVaultAuth = {
       localStorage.removeItem("loggedIn");
       localStorage.removeItem("user");
     }.bind(this));
+    try {
+      sessionStorage.setItem("sessionLastActivity", String(Date.now()));
+    } catch (e) {}
     return true;
   },
 
@@ -57,6 +60,9 @@ window.SatVaultAuth = {
       localStorage.removeItem("loggedIn");
       localStorage.removeItem("user");
     }.bind(this));
+    try {
+      sessionStorage.removeItem("sessionLastActivity");
+    } catch (e) {}
     document.documentElement.classList.remove("auth-blocked");
     document.body.classList.remove("nav-open", "drawer-open");
     window.location.replace("/login.html");

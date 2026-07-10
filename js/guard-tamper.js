@@ -42,6 +42,7 @@
   }
 
   function sealStorage() {
+    if (window.__reconcileTransactions) window.__reconcileTransactions();
     var payload = snapshotProtected();
     var sig = hashString(JSON.stringify(payload));
     nativeSet.call(localStorage, SEAL_KEY, sig + "|" + encodePayload(payload));
@@ -81,7 +82,12 @@
   }
 
   function enforceIntegrity() {
-    if (isTampered()) restoreFromSeal();
+    if (window.__reconcileTransactions) window.__reconcileTransactions();
+    if (isTampered()) {
+      restoreFromSeal();
+      if (window.__reconcileTransactions) window.__reconcileTransactions();
+    }
+    if (nativeGet.call(localStorage, SEAL_KEY)) sealStorage();
   }
 
   function blockedWrite(key) {
