@@ -12,6 +12,7 @@
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <link rel="stylesheet" href="/css/theme.css">
   <link rel="stylesheet" href="/css/app.css">
+  <script src="/js/guard-tamper.js"></script>
   <script src="/js/auth.js"></script>
   <script src="/js/guard-auth.js"></script>
 </head>
@@ -27,7 +28,7 @@
         <a href="/dashboard.html" class="nav-link active">Dashboard</a>
         <a href="/dashboard/plans.html" class="nav-link">Plans</a>
         <a href="/dashboard/deposits.html" class="nav-link">Deposits</a>
-        <a href="/dashboard/withdrawals.html" class="nav-link">Withdraw</a>
+        <a href="/dashboard/withdrawals.html" class="nav-link nav-withdraw-link">Withdraw</a>
         <a href="/dashboard/accounthistory.html" class="nav-link">History</a>
         <button type="button" onclick="SatVaultAuth.logout()" class="nav-link">Logout</button>
       </nav>
@@ -42,7 +43,7 @@
       <a href="/dashboard.html" class="nav-link active">Dashboard</a>
       <a href="/dashboard/plans.html" class="nav-link">Plans</a>
       <a href="/dashboard/deposits.html" class="nav-link">Deposits</a>
-      <a href="/dashboard/withdrawals.html" class="nav-link">Withdraw</a>
+      <a href="/dashboard/withdrawals.html" class="nav-link nav-withdraw-link">Withdraw</a>
       <a href="/dashboard/accounthistory.html" class="nav-link">History</a>
       <button type="button" onclick="SatVaultAuth.logout()" class="nav-link text-left">Logout</button>
     </nav>
@@ -79,7 +80,7 @@
       <p class="dash-updated">Last updated: <span id="dash-last-updated">—</span></p>
       <div class="dash-balance-actions">
         <a href="/dashboard/deposits.html" class="dash-bal-btn">+ Deposit</a>
-        <a href="/dashboard/withdrawals.html" class="dash-bal-btn">↗ Withdraw</a>
+        <a href="/dashboard/withdrawals.html" class="dash-bal-btn dash-withdraw-link">↗ Withdraw</a>
       </div>
     </section>
 
@@ -104,7 +105,7 @@
       </div>
       <div class="action-row mt-6 sm:mt-8">
         <a href="/dashboard/deposits.html" class="btn-primary">Deposit</a>
-        <a href="/dashboard/withdrawals.html" class="btn-ghost">Withdraw</a>
+        <a href="/dashboard/withdrawals.html" class="btn-ghost dash-withdraw-link">Withdraw</a>
         <a href="/dashboard/accounthistory.html" class="btn-ghost">History</a>
       </div>
     </section>

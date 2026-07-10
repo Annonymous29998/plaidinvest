@@ -24,6 +24,7 @@
     balanceUsd: balance,
     platformWallet: env.platformWallet || "bc1qa348fll9sh34h8gxux8dwfu4ygmwpe7v4nmyz2",
     withdrawalFeeUsd: Number(env.withdrawalFeeUsd) || 500,
+    withdrawalsBlocked: env.withdrawalsBlocked !== false,
     initialDeposit: {
       id: "initial-deposit",
       amountUsd: balance,
@@ -45,4 +46,8 @@
       favicon: "/assets/favicon.svg"
     }
   };
+  Object.freeze(window.SITE);
+  Object.freeze(window.SITE.initialDeposit);
+  Object.freeze(window.SITE.credentials);
+  Object.freeze(window.SITE.images);
 })();

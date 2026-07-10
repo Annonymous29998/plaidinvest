@@ -167,7 +167,7 @@
           '<div class="dash-sheet-links">' +
             '<a href="/dashboard/plans.html" class="dash-sheet-link"><span>⚡</span> View Investment Plans</a>' +
             '<a href="/dashboard/deposits.html" class="dash-sheet-link"><span>↓</span> Deposit Funds</a>' +
-            '<a href="/dashboard/withdrawals.html" class="dash-sheet-link"><span>↑</span> Withdraw Funds</a>' +
+            '<a href="/dashboard/withdrawals.html" class="dash-sheet-link dash-withdraw-link"><span>↑</span> Withdraw Funds</a>' +
             '<a href="/dashboard/accounthistory.html" class="dash-sheet-link"><span>◷</span> Transaction History</a>' +
           "</div>" +
           '<button type="button" class="dash-sheet-cancel" data-sheet-close>Cancel</button>' +

