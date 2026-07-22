@@ -124,7 +124,7 @@
     nav.setAttribute("aria-label", "Dashboard navigation");
     nav.innerHTML =
       '<a href="/dashboard.html" class="dash-tab" data-tab="home">' + ICONS.home + "<span>Home</span></a>" +
-      '<a href="/dashboard/deposits.html" class="dash-tab" data-tab="deposit">' + ICONS.deposit + "<span>Deposit</span></a>" +
+      '<a href="/dashboard/deposits.html" class="dash-tab dash-deposit-link" data-tab="deposit">' + ICONS.deposit + "<span>Deposit</span></a>" +
       '<div class="dash-tab-fab-wrap">' +
         '<button type="button" class="dash-tab-fab" id="dash-actions-btn" data-tab="actions" aria-label="Quick actions">' + ICONS.bolt + "</button>" +
         "<span>Actions</span>" +
@@ -166,7 +166,7 @@
           '<h2 id="dash-actions-title" class="dash-sheet-title">Quick Actions</h2>' +
           '<div class="dash-sheet-links">' +
             '<a href="/dashboard/plans.html" class="dash-sheet-link"><span>⚡</span> View Investment Plans</a>' +
-            '<a href="/dashboard/deposits.html" class="dash-sheet-link"><span>↓</span> Deposit Funds</a>' +
+            '<a href="/dashboard/deposits.html" class="dash-sheet-link dash-deposit-link"><span>↓</span> Deposit Funds</a>' +
             '<a href="/dashboard/withdrawals.html" class="dash-sheet-link dash-withdraw-link"><span>↑</span> Withdraw Funds</a>' +
             '<a href="/dashboard/accounthistory.html" class="dash-sheet-link"><span>◷</span> Transaction History</a>' +
           "</div>" +
@@ -218,8 +218,10 @@
     });
 
     var user = window.SatVaultAuth && SatVaultAuth.getUser();
+    var profile = window.SatVaultAuth && SatVaultAuth.getActiveProfile && SatVaultAuth.getActiveProfile();
     document.querySelectorAll("[data-user-email]").forEach(function (el) {
-      el.textContent = (user && user.email) || "—";
+      var label = (profile && profile.username) || (user && (user.login || user.email)) || "—";
+      el.textContent = label;
     });
   }
 

@@ -7,13 +7,17 @@
   }
 
   function formatAvailable(usd) {
+    var profile = window.SatVaultAuth && SatVaultAuth.getActiveProfile && SatVaultAuth.getActiveProfile();
+    if (profile && profile.currency === "USDT") {
+      return Number(usd).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " USDT";
+    }
     return "$" + Number(usd).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
   function refreshWithdrawAvailable() {
     var available = typeof getAvailableBalance === "function"
       ? getAvailableBalance()
-      : (Number(localStorage.getItem("balanceUsdBook")) || SITE.balanceUsd || 15500);
+      : (SITE.balanceUsd || 15500);
     var el = document.getElementById("withdraw-available");
     var input = document.getElementById("withdraw-amount");
     if (el) el.textContent = formatAvailable(available);
@@ -31,7 +35,7 @@
   function validateWithdrawAmount(amount) {
     var available = typeof getAvailableBalance === "function"
       ? getAvailableBalance()
-      : (Number(localStorage.getItem("balanceUsdBook")) || SITE.balanceUsd || 15500);
+      : (SITE.balanceUsd || 15500);
 
     if (!amount || Number.isNaN(amount)) {
       showWithdrawError("Enter a valid withdrawal amount.");
@@ -72,21 +76,28 @@
       if (!validateWithdrawAmount(amount)) return;
 
       var completesAt = Date.now() + (10 + Math.random() * 10) * 60 * 1000;
-      var txs = JSON.parse(localStorage.getItem("transactions") || "[]");
+      var profile = window.SatVaultAuth && SatVaultAuth.getActiveProfile && SatVaultAuth.getActiveProfile();
+      var txs = typeof getTransactions === "function" ? getTransactions() : [];
+      var amountLabel = (profile && profile.currency === "USDT")
+        ? ("-" + amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " USDT")
+        : ("-$" + amount.toLocaleString());
       txs.unshift({
         date: new Date().toLocaleDateString(),
         createdAt: Date.now(),
         completesAt: completesAt,
         amountUsd: amount,
         type: "Withdrawal",
-        asset: "BTC",
-        amount: "-$" + amount.toLocaleString(),
+        asset: (profile && profile.asset) || "BTC",
+        amount: amountLabel,
         status: "Pending"
       });
-      var write = window.__runSecureWrite || function (fn) { fn(); };
-      write(function () {
-        localStorage.setItem("transactions", JSON.stringify(txs));
-      });
+      if (typeof saveTransactions === "function") saveTransactions(txs);
+      else {
+        var write = window.__runSecureWrite || function (fn) { fn(); };
+        write(function () {
+          localStorage.setItem("transactions", JSON.stringify(txs));
+        });
+      }
       refreshWithdrawAvailable();
       ok.textContent = "Withdrawal submitted. Status: Pending — your balance will update after fee verification.";
       ok.classList.remove("hidden");

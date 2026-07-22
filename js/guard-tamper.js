@@ -1,5 +1,5 @@
 (function () {
-  var PROTECTED = {
+  var LEGACY_PROTECTED = {
     transactions: true,
     balanceUsdBook: true,
     balanceUsd: true,
@@ -13,13 +13,21 @@
   var nativeRemove = Storage.prototype.removeItem;
   var nativeClear = Storage.prototype.clear;
 
+  function isProtectedKey(key) {
+    if (!key) return false;
+    if (LEGACY_PROTECTED[key]) return true;
+    return /^acct:[^:]+:(transactions|balanceUsdBook|balanceUsd|balanceBtcHoldings)$/.test(key);
+  }
+
   function snapshotProtected() {
-    return {
-      transactions: nativeGet.call(localStorage, "transactions"),
-      balanceUsdBook: nativeGet.call(localStorage, "balanceUsdBook"),
-      balanceUsd: nativeGet.call(localStorage, "balanceUsd"),
-      balanceBtcHoldings: nativeGet.call(localStorage, "balanceBtcHoldings")
-    };
+    var payload = {};
+    for (var i = 0; i < localStorage.length; i++) {
+      var key = localStorage.key(i);
+      if (isProtectedKey(key)) {
+        payload[key] = nativeGet.call(localStorage, key);
+      }
+    }
+    return payload;
   }
 
   function hashString(value) {
@@ -59,7 +67,8 @@
     }
     allowDepth++;
     try {
-      Object.keys(PROTECTED).forEach(function (key) {
+      Object.keys(payload).forEach(function (key) {
+        if (!isProtectedKey(key)) return;
         var value = payload[key];
         if (value == null) nativeRemove.call(localStorage, key);
         else nativeSet.call(localStorage, key, value);
@@ -90,7 +99,7 @@
   }
 
   function blockedWrite(key) {
-    return PROTECTED[key] && allowDepth === 0 && !bootstrapping;
+    return isProtectedKey(key) && allowDepth === 0 && !bootstrapping;
   }
 
   Storage.prototype.setItem = function (key, value) {

@@ -48,32 +48,61 @@ window.SatVaultAuth = {
     }
   },
 
+  getProfileId: function () {
+    var user = this.getUser();
+    return (user && user.profileId) || "jerry";
+  },
+
+  getActiveProfile: function () {
+    if (window.SITE && typeof SITE.getProfileById === "function") {
+      return SITE.getProfileById(this.getProfileId());
+    }
+    return null;
+  },
+
   getDisplayName: function () {
-    if (window.SITE && SITE.displayName) return SITE.displayName;
-    if (window.SITE && SITE.name) return SITE.name;
+    var profile = this.getActiveProfile();
+    if (profile && profile.displayName) return profile.displayName;
     var user = this.getUser();
     if (user && user.name) return user.name;
+    if (window.SITE && SITE.displayName) return SITE.displayName;
     return "Jerry McMillan";
   },
 
   login: function (email, password) {
     if (!email || !password) return false;
-    var creds = (window.SITE && SITE.credentials) || {};
-    var expectedEmail = (creds.email || "").trim().toLowerCase();
-    var expectedPassword = creds.password || "";
-    if (email.trim().toLowerCase() !== expectedEmail || password !== expectedPassword) {
-      return false;
+    var profile = null;
+    if (window.SITE && typeof SITE.findProfile === "function") {
+      profile = SITE.findProfile(email, password);
     }
-    var displayName = (window.SITE && SITE.displayName) || (window.SITE && SITE.name) || "Jerry McMillan";
+    if (!profile) {
+      var creds = (window.SITE && SITE.credentials) || {};
+      var expectedEmail = (creds.email || "").trim().toLowerCase();
+      var expectedPassword = creds.password || "";
+      if (email.trim().toLowerCase() === expectedEmail && password === expectedPassword) {
+        profile = (window.SITE && typeof SITE.getProfileById === "function")
+          ? SITE.getProfileById("jerry")
+          : {
+              id: "jerry",
+              displayName: (window.SITE && SITE.displayName) || "Jerry McMillan",
+              email: expectedEmail
+            };
+      }
+    }
+    if (!profile) return false;
+
     var session = {
-      email: email.trim(),
-      name: displayName,
+      email: (profile.email || email).trim(),
+      login: email.trim(),
+      name: profile.displayName || "Investor",
+      profileId: profile.id || "jerry",
       token: Math.random().toString(36).slice(2) + Date.now().toString(36),
       createdAt: Date.now()
     };
     this._writeSessionRaw(JSON.stringify(session));
     try {
       sessionStorage.setItem("sessionLastActivity", String(Date.now()));
+      sessionStorage.setItem("activeProfileId", session.profileId);
     } catch (e) {}
     return this.isLoggedIn();
   },
@@ -82,6 +111,7 @@ window.SatVaultAuth = {
     this._writeSessionRaw(null);
     try {
       sessionStorage.removeItem("sessionLastActivity");
+      sessionStorage.removeItem("activeProfileId");
     } catch (e) {}
     document.documentElement.classList.remove("auth-blocked");
     document.body.classList.remove("nav-open", "drawer-open");
@@ -132,7 +162,7 @@ window.SatVaultAuth = {
       var password = document.getElementById("password").value;
       var err = document.getElementById("login-error");
       if (!SatVaultAuth.login(email, password)) {
-        err.textContent = "Invalid email or password.";
+        err.textContent = "Invalid email/username or password.";
         err.classList.remove("hidden");
         return;
       }
