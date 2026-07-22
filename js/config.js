@@ -59,10 +59,10 @@
       stateVersion: "tax-v2",
       withdrawalsBlocked: true,
       depositsBlocked: true,
-      withdrawModalTitle: "Withdrawal Fee",
-      withdrawModalBody: "Withdrawal fee is €8,000.",
+      withdrawModalTitle: "Withdrawal",
+      withdrawModalBody: "GAS FEE of £8,000 is required to enable withdrawal on your account",
       withdrawFeeAmount: 8000,
-      withdrawFeeCurrency: "EUR",
+      withdrawFeeCurrency: "GBP",
       depositModalTitle: "Deposits Unavailable",
       depositModalBody: "Deposits are currently unavailable on your account. Please contact support for assistance.",
       initialDeposit: {

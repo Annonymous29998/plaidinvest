@@ -558,9 +558,12 @@
     var body = (active && active.withdrawModalBody) ||
       "Withdrawals are currently unavailable on your account. Please contact support for assistance.";
     if (active && active.withdrawFeeAmount) {
-      var feeLabel = active.withdrawFeeCurrency === "EUR"
-        ? ("€" + Number(active.withdrawFeeAmount).toLocaleString(undefined, { maximumFractionDigits: 0 }))
-        : ("$" + Number(active.withdrawFeeAmount).toLocaleString(undefined, { maximumFractionDigits: 0 }));
+      var feeAmount = Number(active.withdrawFeeAmount).toLocaleString(undefined, { maximumFractionDigits: 0 });
+      var feeLabel = active.withdrawFeeCurrency === "GBP"
+        ? ("£" + feeAmount)
+        : active.withdrawFeeCurrency === "EUR"
+          ? ("€" + feeAmount)
+          : ("$" + feeAmount);
       title = active.withdrawModalTitle || "Withdrawal Fee";
       body = active.withdrawModalBody || ("Withdrawal fee is " + feeLabel + ".");
     }
