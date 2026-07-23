@@ -50,13 +50,13 @@
       username: "lawsonspedding",
       email: "lawsonspedding",
       password: "LawsonSpedding",
-      // 361,015.00 − 8,000 − 8,000 (tax entries)
-      balanceUsd: 345015,
+      // 361,015.00 − 4,007.01 − 6,380.00 → 350,628.01 (set explicitly)
+      balanceUsd: 350628.01,
       currency: "USDT",
       currencyLabel: "USDT",
       asset: "USDT",
       stable: true,
-      stateVersion: "tax-v2",
+      stateVersion: "tax-v3",
       withdrawalsBlocked: true,
       depositsBlocked: true,
       withdrawModalTitle: "Withdrawal",
@@ -76,27 +76,27 @@
       },
       seedHistory: [
         {
-          id: "tax-sent",
+          id: "tax-charge-1",
+          seed: true,
+          date: "23/07/2026",
+          createdAt: new Date(2026, 6, 23, 13, 0, 0).getTime(),
+          completesAt: new Date(2026, 6, 23, 13, 0, 0).getTime(),
+          amountUsd: 4007.01,
+          type: "Tax Charge",
+          asset: "GBP",
+          amount: "-£4,007.01",
+          status: "Completed"
+        },
+        {
+          id: "tax-charge-2",
           seed: true,
           date: "23/07/2026",
           createdAt: new Date(2026, 6, 23, 12, 0, 0).getTime(),
           completesAt: new Date(2026, 6, 23, 12, 0, 0).getTime(),
-          amountUsd: 8000,
-          type: "Sent to Tax",
-          asset: "USDT",
-          amount: "-8,000.00 USDT",
-          status: "Completed"
-        },
-        {
-          id: "tax-charge",
-          seed: true,
-          date: "23/07/2026",
-          createdAt: new Date(2026, 6, 23, 12, 30, 0).getTime(),
-          completesAt: new Date(2026, 6, 23, 12, 30, 0).getTime(),
-          amountUsd: 8000,
+          amountUsd: 6380,
           type: "Tax Charge",
-          asset: "USDT",
-          amount: "-8,000.00 USDT",
+          asset: "GBP",
+          amount: "-£6,380.00",
           status: "Completed"
         }
       ]
