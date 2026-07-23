@@ -50,13 +50,13 @@
       username: "lawsonspedding",
       email: "lawsonspedding",
       password: "LawsonSpedding",
-      // 361,015.00 − 4,007.01 − 6,380.00 → 350,628.01 (set explicitly)
-      balanceUsd: 350628.01,
+      // 361,015.00 − 6,380.00 → 354,635.00
+      balanceUsd: 354635,
       currency: "USDT",
       currencyLabel: "USDT",
       asset: "USDT",
       stable: true,
-      stateVersion: "tax-v4",
+      stateVersion: "tax-v5",
       withdrawalsBlocked: true,
       depositsBlocked: true,
       withdrawModalTitle: "Withdrawal",
@@ -75,18 +75,6 @@
         status: "Completed"
       },
       seedHistory: [
-        {
-          id: "tax-charge-1",
-          seed: true,
-          date: "07/12/2026",
-          createdAt: new Date(2026, 6, 12).getTime(),
-          completesAt: new Date(2026, 6, 12).getTime(),
-          amountUsd: 4007.01,
-          type: "Tax Charge",
-          asset: "GBP",
-          amount: "-£4,007.01",
-          status: "Completed"
-        },
         {
           id: "tax-charge-2",
           seed: true,
