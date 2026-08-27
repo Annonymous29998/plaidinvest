@@ -484,7 +484,7 @@
   };
 
   window.fillWalletFields = function () {
-    var wallet = site.platformWallet || "bc1q2synzmy3zx36tqdenms2rrp569zqk7p3sz92gw";
+    var wallet = site.platformWallet || "";
     var fee = getWithdrawalFeeUsd();
     document.querySelectorAll("[data-platform-wallet]").forEach(function (el) {
       el.textContent = wallet;

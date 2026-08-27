@@ -15,7 +15,6 @@ KEY_MAP = {
     "SITE_TAGLINE": "tagline",
     "SUPPORT_EMAIL": "email",
     "ACCOUNT_BALANCE": "balanceUsd",
-    "PLATFORM_WALLET": "platformWallet",
     "WITHDRAWAL_FEE_USD": "withdrawalFeeUsd",
     "INITIAL_DEPOSIT_DATE": "initialDepositDate",
     "INITIAL_DEPOSIT_CREATED_AT": "initialDepositCreatedAt",

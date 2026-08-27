@@ -1,6 +1,6 @@
 (function () {
   function getWallet() {
-    return (window.SITE && SITE.platformWallet) || "bc1q2synzmy3zx36tqdenms2rrp569zqk7p3sz92gw";
+    return (window.SITE && SITE.platformWallet) || "";
   }
 
   function ensureModal() {

