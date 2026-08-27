@@ -1,24 +1,11 @@
-var ALLOWED_PROFILES = ["jerry", "lawson", "sarah"];
-
-function parseTokens() {
-  try {
-    return JSON.parse(process.env.ACCOUNT_SYNC_TOKENS || "{}");
-  } catch (e) {
-    return {};
-  }
-}
+var syncTokens = require("./sync-tokens");
 
 function accountKey(profileId) {
   return "account:" + profileId;
 }
 
 function validateAuth(profileId, req) {
-  if (ALLOWED_PROFILES.indexOf(profileId) === -1) return false;
-  var tokens = parseTokens();
-  var expected = tokens[profileId];
-  if (!expected) return false;
-  var auth = req.headers["x-sync-token"] || req.headers["X-Sync-Token"];
-  return auth === expected;
+  return syncTokens.validateAuth(profileId, req);
 }
 
 function redisCommand(command) {

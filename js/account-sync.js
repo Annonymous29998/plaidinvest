@@ -24,9 +24,10 @@
   }
 
   function getSyncToken(profileId) {
-    if (!window.SITE || typeof SITE.getProfileById !== "function") return "";
-    var profile = SITE.getProfileById(profileId);
-    return (profile && profile.syncToken) || "";
+    if (window.SITE && typeof SITE.getSyncToken === "function") {
+      return SITE.getSyncToken(profileId);
+    }
+    return "";
   }
 
   function storagePrefix(profileId) {
