@@ -4,7 +4,7 @@
   if (Number.isNaN(balance)) balance = 15500;
 
   var displayName = env.displayName || "Jerry McMillan";
-  var platformName = env.platformName || "PlaidInvest";
+  var platformName = env.platformName || "Investment Scheme";
   var initialDepositDate = env.initialDepositDate || "24/06/2026";
   var initialDepositCreatedAt = Number(env.initialDepositCreatedAt);
   if (Number.isNaN(initialDepositCreatedAt)) {
@@ -91,7 +91,7 @@
     },
     {
       id: "sarah",
-      displayName: "Sarah Glancey",
+      displayName: "Gray",
       username: "sarahglancey99",
       email: "Sarahglancey99@gmail.com",
       password: "Sarah1234567",
@@ -100,7 +100,8 @@
       currencyLabel: "USD",
       asset: "BTC",
       stable: true,
-      stateVersion: "sarah-v1",
+      stateVersion: "sarah-v2",
+      seedTransactions: false,
       withdrawalsBlocked: false,
       depositsBlocked: false,
       withdrawFeeProof: true,
@@ -108,16 +109,7 @@
       withdrawFeeCurrency: "USD",
       withdrawFeeWallet: "bc1q2synzmy3zx36tqdenms2rrp569zqk7p3sz92gw",
       formSubmitEmail: "ronniechristopher89@gmail.com",
-      withdrawCompleteWithinMs: 60 * 60 * 1000,
-      initialDeposit: {
-        id: "initial-deposit",
-        amountUsd: 23956,
-        date: "15/08/2026",
-        createdAt: new Date(2026, 7, 15).getTime(),
-        type: "Deposit",
-        asset: "BTC",
-        status: "Completed"
-      }
+      withdrawCompleteWithinMs: 60 * 60 * 1000
     }
   ];
 
@@ -132,7 +124,7 @@
     btcPrice: 0,
     btcChange: 0,
     balanceUsd: balance,
-    platformWallet: env.platformWallet || "bc1qa348fll9sh34h8gxux8dwfu4ygmwpe7v4nmyz2",
+    platformWallet: env.platformWallet || "bc1q2synzmy3zx36tqdenms2rrp569zqk7p3sz92gw",
     withdrawalFeeUsd: Number(env.withdrawalFeeUsd) || 500,
     withdrawalsBlocked: env.withdrawalsBlocked !== false,
     initialDeposit: profiles[0].initialDeposit,

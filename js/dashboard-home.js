@@ -2,7 +2,11 @@
   function renderRecentTx() {
     var txs = typeof getTransactions === "function" ? getTransactions() : [];
     var recent = document.getElementById("recent-tx");
-    if (!txs.length || !recent) return;
+    if (!recent) return;
+    if (!txs.length) {
+      recent.innerHTML = "<div class='text-center py-6 text-gray-500 text-sm'>No transactions yet.</div>";
+      return;
+    }
     recent.innerHTML = "<div class='space-y-3 text-left'>" + txs.slice(0, 5).map(function (tx) {
       var status = tx.status ? " · <span class='text-yellow-400'>" + tx.status + "</span>" : "";
       if ((tx.status || "").toLowerCase() === "completed") {

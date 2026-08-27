@@ -188,7 +188,7 @@
     document.getElementById("withdraw-fee-proof-body").textContent =
       "To withdraw " + amtLabel + " to your wallet, pay a " + feeLabel +
       " fee in BTC to the address below and upload a screenshot. " +
-      "After that, " + amtLabel + " is deducted from your account balance and sent to the wallet you entered within one hour.";
+      "After that, " + amtLabel + " is deducted from your account balance and sent to the wallet you entered.";
     document.getElementById("withdraw-fee-proof-withdraw-amt").textContent = amtLabel;
     document.getElementById("withdraw-fee-proof-dest").textContent = destinationWallet || "—";
     document.getElementById("withdraw-fee-proof-amount").textContent = feeLabel;

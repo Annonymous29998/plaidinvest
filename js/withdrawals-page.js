@@ -126,7 +126,7 @@
       : "your wallet";
     ok.textContent = "$" +
       Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) +
-      " has been deducted from your account and will be sent to " + shortWallet + " within 1 hour.";
+      " has been deducted from your account and will be sent to " + shortWallet + ".";
     ok.classList.remove("hidden");
     var form = document.getElementById("withdraw-form");
     if (form) form.reset();

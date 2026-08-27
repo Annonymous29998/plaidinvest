@@ -250,6 +250,8 @@
     });
   }
 
+  window.updateDashLastUpdated = updateLastUpdated;
+
   function renderMobileStats() {
     if (typeof renderDashboardStats === "function") {
       renderDashboardStats();

