@@ -38,6 +38,7 @@
       username: jerryCreds.username || "",
       email: jerryCreds.email,
       password: jerryCreds.password,
+      syncToken: "jry_sync_8f3k2m9x",
       balanceUsd: balance,
       currency: "USD",
       currencyLabel: "USD",
@@ -64,6 +65,7 @@
       username: "lawsonspedding",
       email: "lawsonspedding",
       password: "LawsonSpedding",
+      syncToken: "lws_sync_4p7n1q6v",
       // 361,015.00 − 6,380.00 → 354,635.00
       balanceUsd: 354635,
       currency: "USDT",
@@ -105,10 +107,11 @@
     },
     {
       id: "sarah",
-      displayName: "Gray",
+      displayName: "Gary",
       username: "sarahglancey99",
       email: "Sarahglancey99@gmail.com",
       password: "Sarah1234567",
+      syncToken: "sar_sync_2h8k5w3z",
       balanceUsd: 23956,
       currency: "USD",
       currencyLabel: "USD",

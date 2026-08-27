@@ -1,4 +1,5 @@
 (function () {
+  function bootApp() {
   var site = window.SITE || { name: "Jerry McMillan", displayName: "Jerry McMillan", balanceUsd: 15500, btcPrice: 0 };
 
   function getActiveProfile() {
@@ -166,6 +167,9 @@
     secureWrite(function () {
       localStorage.setItem(txKey, JSON.stringify(txs));
     });
+    if (window.AccountSync && typeof AccountSync.schedulePush === "function") {
+      AccountSync.schedulePush();
+    }
   }
 
   function loadRawTransactions() {
@@ -353,6 +357,9 @@
     });
     site.balanceUsd = usd;
     renderBalances();
+    if (window.AccountSync && typeof AccountSync.schedulePush === "function") {
+      AccountSync.schedulePush();
+    }
   };
 
   window.getWalletUsd = function () {
@@ -560,6 +567,9 @@
 
     if (changed) {
       document.dispatchEvent(new CustomEvent("transactionsUpdated"));
+      if (window.AccountSync && typeof AccountSync.schedulePush === "function") {
+        AccountSync.schedulePush();
+      }
     }
     return changed;
   }
@@ -746,4 +756,11 @@
   }
 
   if (window.__sealSecureStorage) window.__sealSecureStorage();
+  }
+
+  if (window.AccountSync && typeof AccountSync.whenReady === "function") {
+    AccountSync.whenReady(bootApp);
+  } else {
+    bootApp();
+  }
 })();

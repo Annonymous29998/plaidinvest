@@ -170,7 +170,14 @@ window.SatVaultAuth = {
       var params = new URLSearchParams(location.search);
       var next = params.get("next") || "/dashboard.html";
       if (!next.startsWith("/") || next.startsWith("//")) next = "/dashboard.html";
-      window.location.replace(next);
+      function goNext() {
+        window.location.replace(next);
+      }
+      if (window.AccountSync && typeof AccountSync.syncOnLogin === "function") {
+        AccountSync.syncOnLogin().finally(goNext);
+      } else {
+        goNext();
+      }
     });
 
     var input = document.getElementById("password");
