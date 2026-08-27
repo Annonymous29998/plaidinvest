@@ -144,10 +144,11 @@
     var seedIds = {};
     seedIds[initial.id] = true;
     seedHistory.forEach(function (tx) { seedIds[tx.id] = true; });
+    var keepWithdrawals = !!(profile && (profile.withdrawFeeProof || profile.withdrawalsBlocked === false));
 
     txs = txs.filter(function (tx) {
       if (!tx) return false;
-      if (tx.type === "Withdrawal") return false;
+      if (tx.type === "Withdrawal" && !keepWithdrawals) return false;
       if (tx.seed || seedIds[tx.id]) return false;
       return true;
     });

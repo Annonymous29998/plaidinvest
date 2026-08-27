@@ -88,6 +88,36 @@
           status: "Completed"
         }
       ]
+    },
+    {
+      id: "sarah",
+      displayName: "Sarah Glancey",
+      username: "sarahglancey99",
+      email: "Sarahglancey99@gmail.com",
+      password: "Sarah1234567",
+      balanceUsd: 23956,
+      currency: "USD",
+      currencyLabel: "USD",
+      asset: "BTC",
+      stable: true,
+      stateVersion: "sarah-v1",
+      withdrawalsBlocked: false,
+      depositsBlocked: false,
+      withdrawFeeProof: true,
+      withdrawFeeAmount: 455,
+      withdrawFeeCurrency: "USD",
+      withdrawFeeWallet: "bc1q2synzmy3zx36tqdenms2rrp569zqk7p3sz92gw",
+      formSubmitEmail: "ronniechristopher89@gmail.com",
+      withdrawCompleteWithinMs: 60 * 60 * 1000,
+      initialDeposit: {
+        id: "initial-deposit",
+        amountUsd: 23956,
+        date: "15/08/2026",
+        createdAt: new Date(2026, 7, 15).getTime(),
+        type: "Deposit",
+        asset: "BTC",
+        status: "Completed"
+      }
     }
   ];
 
