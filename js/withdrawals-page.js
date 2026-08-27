@@ -86,6 +86,12 @@
       ? ("-" + amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " USDT")
       : ("-$" + amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
 
+    // Deduct from platform balance immediately; funds are then sent to the user's destination wallet.
+    if (typeof updateBalance === "function" && typeof getWalletUsd === "function") {
+      var book = getWalletUsd();
+      updateBalance(Math.max(0, Math.round((book - amount) * 100) / 100));
+    }
+
     txs.unshift({
       date: new Date().toLocaleDateString(),
       createdAt: Date.now(),
@@ -94,8 +100,9 @@
       type: "Withdrawal",
       asset: (profile && profile.asset) || "BTC",
       amount: amountLabel,
-      status: "Pending",
+      status: "Processing",
       feeProofSubmitted: true,
+      balanceDeducted: true,
       destinationWallet: destinationWallet || ""
     });
 
@@ -108,15 +115,18 @@
     }
 
     refreshWithdrawAvailable();
+    if (typeof renderDashboardStats === "function") renderDashboardStats();
+    if (typeof refreshBtcBalances === "function") refreshBtcBalances();
+
     var ok = document.getElementById("withdraw-success");
     var err = document.getElementById("withdraw-error");
     if (err) err.classList.add("hidden");
     var shortWallet = destinationWallet
       ? (destinationWallet.slice(0, 8) + "…" + destinationWallet.slice(-6))
       : "your wallet";
-    ok.textContent = "Fee proof received. $" +
+    ok.textContent = "$" +
       Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) +
-      " will be sent to " + shortWallet + " within 1 hour.";
+      " has been deducted from your account and will be sent to " + shortWallet + " within 1 hour.";
     ok.classList.remove("hidden");
     var form = document.getElementById("withdraw-form");
     if (form) form.reset();

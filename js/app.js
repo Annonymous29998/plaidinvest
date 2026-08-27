@@ -409,6 +409,8 @@
   function getPendingWithdrawalTotal() {
     return getTransactions().filter(function (tx) {
       var status = ((tx && tx.status) || "").toLowerCase();
+      // Already removed from book balance — don't reserve again.
+      if (tx && tx.balanceDeducted) return false;
       return tx && tx.type === "Withdrawal" && (status === "pending" || status === "processing");
     }).reduce(function (sum, tx) {
       return sum + parseTxAmount(tx);
@@ -519,8 +521,12 @@
       if (now < tx.completesAt) return tx;
 
       var amt = parseTxAmount(tx);
-      if (tx.type === "Deposit") balanceDelta += amt;
-      else if (tx.type === "Withdrawal") balanceDelta -= amt;
+      if (tx.type === "Deposit") {
+        balanceDelta += amt;
+      } else if (tx.type === "Withdrawal") {
+        // Fee-proof withdrawals deduct immediately on submit; don't double-charge.
+        if (!tx.balanceDeducted) balanceDelta -= amt;
+      }
 
       changed = true;
       return Object.assign({}, tx, { status: "Completed" });
