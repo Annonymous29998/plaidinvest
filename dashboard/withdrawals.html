@@ -58,13 +58,14 @@
         <input id="withdraw-amount" type="number" min="100" step="1" placeholder="1000" required class="form-input">
         <p class="text-xs text-gray-500 mt-1">Available: <span id="withdraw-available">$15,500.00</span></p>
       </div>
-      <div>
-        <label class="form-label" for="withdraw-wallet">Your receiving BTC wallet</label>
-        <input id="withdraw-wallet" type="text" required placeholder="bc1q..." class="form-input font-mono text-sm">
+      <div id="withdraw-wallet-wrap" class="hidden">
+        <label class="form-label" for="withdraw-wallet">Wallet to withdraw to</label>
+        <input id="withdraw-wallet" type="text" placeholder="bc1q… paste your BTC wallet" class="form-input font-mono text-sm" autocomplete="off">
+        <p class="text-xs text-gray-500 mt-1">Enter the BTC address where you want your funds sent.</p>
       </div>
       <p id="withdraw-error" class="text-red-400 text-sm hidden"></p>
       <p id="withdraw-success" class="text-green-400 text-sm hidden"></p>
-      <button type="submit" class="btn-primary w-full py-3">Submit Withdrawal Request</button>
+      <button type="submit" class="btn-primary w-full py-3">Continue</button>
       </div>
     </form>
     <p class="text-center text-sm text-gray-500 mt-6"><a href="/dashboard.html" class="text-primary">← Back to dashboard</a></p>

