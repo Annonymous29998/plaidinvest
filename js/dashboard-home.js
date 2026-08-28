@@ -18,11 +18,26 @@
     }).join("") + "</div>";
   }
 
-  renderRecentTx();
-  document.addEventListener("transactionsUpdated", function () {
+  function onTransactionsChanged() {
     renderRecentTx();
     if (window.refreshDashMobile) refreshDashMobile();
-  });
+  }
+
+  function initRecentTx() {
+    renderRecentTx();
+  }
+
+  document.addEventListener("transactionsUpdated", onTransactionsChanged);
+  document.addEventListener("accountStateLoaded", renderRecentTx);
+  document.addEventListener("appReady", renderRecentTx);
+
+  if (window.AccountSync && typeof AccountSync.whenReady === "function") {
+    AccountSync.whenReady(initRecentTx);
+  } else if (typeof getTransactions === "function") {
+    initRecentTx();
+  } else {
+    document.addEventListener("appReady", initRecentTx, { once: true });
+  }
 
   if (window.BtcPrice) {
     var origPaint = BtcPrice.paintPrice;

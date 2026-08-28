@@ -23,8 +23,22 @@
     }).join("");
   }
 
-  renderHistory();
+  function initHistory() {
+    renderHistory();
+  }
+
   document.addEventListener("transactionsUpdated", renderHistory);
+  document.addEventListener("accountStateLoaded", renderHistory);
+  document.addEventListener("appReady", renderHistory);
+
+  if (window.AccountSync && typeof AccountSync.whenReady === "function") {
+    AccountSync.whenReady(initHistory);
+  } else if (typeof getTransactions === "function") {
+    initHistory();
+  } else {
+    document.addEventListener("appReady", initHistory, { once: true });
+  }
+
   if (window.__enforceSecureStorage) {
     setInterval(renderHistory, 3000);
   }

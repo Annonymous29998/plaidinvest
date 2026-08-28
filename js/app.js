@@ -577,9 +577,8 @@
   window.processPendingTransactions = processPendingTransactions;
   processPendingTransactions();
   renderDashboardStats();
-  if (siteStateChanged) {
-    document.dispatchEvent(new CustomEvent("transactionsUpdated"));
-  }
+  document.dispatchEvent(new CustomEvent("transactionsUpdated"));
+  document.dispatchEvent(new CustomEvent("appReady"));
   setInterval(processPendingTransactions, 30000);
 
   function getWithdrawModalCopy() {

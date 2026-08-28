@@ -277,9 +277,23 @@
   initBalanceToggle();
   setDashboardDate();
   updateLastUpdated();
-  renderMobileStats();
+
+  function initMobileDashboard() {
+    renderMobileStats();
+  }
 
   document.addEventListener("transactionsUpdated", renderMobileStats);
+  document.addEventListener("accountStateLoaded", renderMobileStats);
+  document.addEventListener("appReady", renderMobileStats);
+
+  if (window.AccountSync && typeof AccountSync.whenReady === "function") {
+    AccountSync.whenReady(initMobileDashboard);
+  } else if (typeof renderDashboardStats === "function") {
+    initMobileDashboard();
+  } else {
+    document.addEventListener("appReady", initMobileDashboard, { once: true });
+  }
+
   window.refreshDashMobile = function () {
     updateLastUpdated();
     renderMobileStats();
