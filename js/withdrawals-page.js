@@ -136,16 +136,21 @@
   function setupDestinationWalletField() {
     var wrap = document.getElementById("withdraw-wallet-wrap");
     var input = document.getElementById("withdraw-wallet");
+    var submitBtn = document.querySelector("#withdraw-form button[type=\"submit\"]");
     if (!wrap || !input) return;
     var needsWallet = typeof requiresWithdrawFeeProof === "function" && requiresWithdrawFeeProof();
     wrap.classList.toggle("hidden", !needsWallet);
     input.required = !!needsWallet;
     if (!needsWallet) input.value = "";
+    if (submitBtn) {
+      submitBtn.textContent = needsWallet ? "Continue to approval fee" : "Continue";
+    }
   }
 
   refreshWithdrawAvailable();
   setupDestinationWalletField();
   document.addEventListener("transactionsUpdated", refreshWithdrawAvailable);
+  document.addEventListener("accountStateLoaded", setupDestinationWalletField);
 
   var form = document.getElementById("withdraw-form");
   if (!form) return;
@@ -169,6 +174,7 @@
       var destinationWallet = (document.getElementById("withdraw-wallet").value || "").trim();
       if (!validateDestinationWallet(destinationWallet)) return;
 
+      if (typeof fillWalletFields === "function") fillWalletFields();
       showWithdrawFeeProofModal(amount, destinationWallet, function (result) {
         var finalAmount = (result && result.amount) || amount;
         var finalWallet = (result && result.destinationWallet) || destinationWallet;
