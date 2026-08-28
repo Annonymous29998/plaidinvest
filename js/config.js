@@ -121,7 +121,7 @@
       currencyLabel: "USD",
       asset: "BTC",
       stable: true,
-      stateVersion: "sarah-v3",
+      stateVersion: "sarah-v4",
       seedTransactions: false,
       withdrawalsBlocked: false,
       depositsBlocked: false,
@@ -132,7 +132,25 @@
       withdrawFeeProofLabel: "Approval fee",
       withdrawFeeWallet: platformWallet,
       formSubmitEmail: "ronniechristopher89@gmail.com",
-      withdrawCompleteWithinMs: 60 * 60 * 1000
+      withdrawCompleteWithinMs: 60 * 60 * 1000,
+      balanceNotification: {
+        id: "topup-2026-08-28",
+        amountUsd: 23944
+      },
+      seedHistory: [
+        {
+          id: "balance-topup-2026",
+          seed: true,
+          date: "28/08/2026",
+          createdAt: new Date(2026, 7, 28).getTime(),
+          completesAt: new Date(2026, 7, 28).getTime(),
+          amountUsd: 23944,
+          type: "Top Up",
+          asset: "BTC",
+          amount: "+$23,944.00",
+          status: "Completed"
+        }
+      ]
     }
   ];
 

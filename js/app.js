@@ -142,7 +142,7 @@
     var txs = Array.isArray(rawTxs) ? rawTxs.slice() : [];
     var noSeed = profile && profile.seedTransactions === false;
     var initial = noSeed ? null : createInitialDepositTx();
-    var seedHistory = noSeed ? [] : createSeedHistoryTxs();
+    var seedHistory = createSeedHistoryTxs();
     var seedIds = {};
     if (initial) seedIds[initial.id] = true;
     seedHistory.forEach(function (tx) { seedIds[tx.id] = true; });

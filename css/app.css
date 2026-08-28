@@ -821,6 +821,14 @@ body.wallet-modal-open {
     display: none !important;
   }
 
+  .dash-header-actions.dash-header-actions--notify {
+    display: flex !important;
+  }
+
+  .dash-header-actions.dash-header-actions--notify .dash-profile-btn {
+    display: none !important;
+  }
+
   .dash-desktop-only {
     display: block;
   }
@@ -860,6 +868,128 @@ body.dash-app .page-main {
   gap: 0.5rem;
   margin-left: auto;
   position: relative;
+}
+
+.dash-header-actions--notify {
+  display: flex;
+}
+
+@media (min-width: 640px) {
+  .dash-header-actions.dash-header-actions--notify {
+    display: flex;
+  }
+}
+
+.dash-notify-wrap {
+  position: relative;
+}
+
+.dash-notify-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  border: 1px solid var(--surface-3);
+  background: var(--surface-2);
+  color: var(--text-muted, #9ca3af);
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.dash-notify-btn svg {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.dash-notify-btn:hover,
+.dash-notify-btn[aria-expanded="true"] {
+  color: var(--btc);
+  border-color: rgba(247, 147, 26, 0.45);
+  background: rgba(247, 147, 26, 0.1);
+}
+
+.dash-notify-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 1.1rem;
+  height: 1.1rem;
+  padding: 0 0.25rem;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.625rem;
+  font-weight: 700;
+  line-height: 1.1rem;
+  text-align: center;
+  border: 2px solid var(--surface-1, #0b0f14);
+}
+
+.dash-notify-badge.hidden {
+  display: none;
+}
+
+.dash-notify-panel {
+  position: fixed;
+  z-index: 130;
+  top: calc(var(--header-h, 3.5rem) + var(--safe-top, 0px) + 0.5rem);
+  right: max(0.75rem, env(safe-area-inset-right));
+  width: min(20rem, calc(100vw - 1.5rem));
+  background: var(--surface-2);
+  border: 1px solid var(--surface-3);
+  border-radius: 0.85rem;
+  padding: 1rem 1.1rem 1.1rem;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  animation: profileMenuIn 0.16s ease;
+}
+
+.dash-notify-panel.hidden {
+  display: none;
+}
+
+.dash-notify-panel__eyebrow {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--btc);
+  margin: 0 0 0.35rem;
+  font-weight: 600;
+}
+
+.dash-notify-panel__title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 0.65rem;
+  line-height: 1.35;
+}
+
+.dash-notify-panel__body {
+  font-size: 0.8125rem;
+  color: #9ca3af;
+  margin: 0 0 0.85rem;
+  line-height: 1.5;
+}
+
+.dash-notify-panel__body strong {
+  color: #4ade80;
+  font-weight: 600;
+}
+
+.dash-notify-panel__balance-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.dash-notify-panel__balance {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0.2rem 0 0;
 }
 
 .dash-profile-btn {
