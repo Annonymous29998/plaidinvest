@@ -24,7 +24,7 @@ var SEEDS = {
     balanceBtcHoldings: null,
     transactions: [],
     stateVersion: "sarah-v9",
-    accountResetToken: "gary-reset-2026-09-02",
+    accountResetToken: "gary-reset-test-1",
     updatedAt: 0
   }
 };
