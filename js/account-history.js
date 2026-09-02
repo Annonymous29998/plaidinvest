@@ -15,7 +15,7 @@
       var status = tx.status || "";
       var amount = tx.amount || "";
       var statusClass = status.toLowerCase() === "pending" || status.toLowerCase() === "processing"
-        ? "text-yellow-400" : "text-gray-300";
+        ? "text-red-400" : "text-gray-300";
       var amountClass = amount.indexOf("+") === 0 ? "text-green-400" : "text-red-400";
       return "<tr><td>" + tx.date + "</td><td>" + tx.type + "</td><td>" + tx.asset + "</td>" +
         '<td class="text-right font-medium ' + amountClass + '">' + amount + "</td>" +

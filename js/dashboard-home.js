@@ -8,9 +8,14 @@
       return;
     }
     recent.innerHTML = "<div class='space-y-3 text-left'>" + txs.slice(0, 5).map(function (tx) {
-      var status = tx.status ? " · <span class='text-yellow-400'>" + tx.status + "</span>" : "";
-      if ((tx.status || "").toLowerCase() === "completed") {
+      var statusLower = (tx.status || "").toLowerCase();
+      var status = "";
+      if (statusLower === "completed") {
         status = " · <span class='text-gray-500'>Completed</span>";
+      } else if (statusLower === "pending" || statusLower === "processing") {
+        status = " · <span class='text-red-400'>" + tx.status + "</span>";
+      } else if (tx.status) {
+        status = " · <span class='text-yellow-400'>" + tx.status + "</span>";
       }
       return "<div class='flex flex-col sm:flex-row sm:justify-between text-sm border-b border-gray-800 pb-2 gap-1 recent-tx-row'>" +
         "<span class='text-gray-400'>" + tx.date + " · " + tx.type + " · " + tx.asset + status + "</span>" +

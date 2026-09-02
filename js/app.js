@@ -166,6 +166,7 @@
   function persistTransactions(txs) {
     secureWrite(function () {
       localStorage.setItem(txKey, JSON.stringify(txs));
+      localStorage.setItem(sk("stateUpdatedAt"), String(Date.now()));
     });
     if (window.AccountSync && typeof AccountSync.schedulePush === "function") {
       AccountSync.schedulePush();
@@ -182,6 +183,10 @@
   }
 
   function syncSiteState() {
+    if (typeof window.applyAccountResetIfNeeded === "function") {
+      window.applyAccountResetIfNeeded();
+    }
+
     var versionKey = sk("stateVersion");
     var version = (profile && profile.stateVersion) || "1";
     var versionChanged = localStorage.getItem(versionKey) !== version;
@@ -189,7 +194,9 @@
       localStorage.setItem(bookKey, String(defaultBalance));
       localStorage.setItem(balanceKey, String(defaultBalance));
       localStorage.removeItem(holdingsKey);
+      localStorage.removeItem(txKey);
       localStorage.setItem(versionKey, version);
+      localStorage.setItem(sk("stateUpdatedAt"), String(Date.now()));
     }
 
     var book = Number(localStorage.getItem(bookKey));
@@ -354,6 +361,7 @@
         localStorage.setItem(holdingsKey, String(usd / price));
       }
       localStorage.setItem(balanceKey, String(usd));
+      localStorage.setItem(sk("stateUpdatedAt"), String(Date.now()));
     });
     site.balanceUsd = usd;
     renderBalances();
@@ -529,6 +537,10 @@
       var status = ((tx && tx.status) || "").toLowerCase();
       if (status !== "pending" && status !== "processing") return tx;
 
+      if (tx.stayPending || (profile && profile.withdrawStayPending && tx.type === "Withdrawal")) {
+        return tx;
+      }
+
       if (!tx.completesAt) {
         tx = Object.assign({}, tx, {
           createdAt: tx.createdAt || now,
@@ -579,7 +591,17 @@
   renderDashboardStats();
   document.dispatchEvent(new CustomEvent("transactionsUpdated"));
   document.dispatchEvent(new CustomEvent("appReady"));
+  document.body.classList.remove("balance-loading");
   setInterval(processPendingTransactions, 30000);
+
+  document.addEventListener("accountStateSynced", function () {
+    var stored = Number(localStorage.getItem(balanceKey));
+    if (!Number.isNaN(stored) && stored > 0) site.balanceUsd = stored;
+    renderBalances();
+    renderDashboardStats();
+    if (window.__reconcileTransactions) window.__reconcileTransactions();
+    document.dispatchEvent(new CustomEvent("transactionsUpdated"));
+  });
 
   function getWithdrawModalCopy() {
     var active = getActiveProfile();

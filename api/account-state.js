@@ -1,28 +1,8 @@
 var syncTokens = require("./sync-tokens");
-
-function accountKey(profileId) {
-  return "account:" + profileId;
-}
+var accountStore = require("./account-store");
 
 function validateAuth(profileId, req) {
   return syncTokens.validateAuth(profileId, req);
-}
-
-function redisCommand(command) {
-  var url = process.env.UPSTASH_REDIS_REST_URL;
-  var token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (!url || !token) return Promise.resolve(null);
-  return fetch(url, {
-    method: "POST",
-    headers: {
-      Authorization: "Bearer " + token,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(command)
-  }).then(function (res) {
-    if (!res.ok) throw new Error("Redis request failed");
-    return res.json();
-  });
 }
 
 module.exports = async function handler(req, res) {
@@ -35,8 +15,8 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
-    res.status(503).json({ error: "Database not configured" });
+  if (!accountStore.isConfigured()) {
+    res.status(503).json({ error: "Sync store not configured" });
     return;
   }
 
@@ -51,12 +31,17 @@ module.exports = async function handler(req, res) {
 
   try {
     if (req.method === "GET") {
-      var got = await redisCommand(["GET", accountKey(profileId)]);
-      if (!got || got.result == null) {
-        res.status(404).json({ error: "Not found" });
+      var stored = await accountStore.getAccount(profileId);
+      if (!stored) {
+        var seed = accountStore.getSeed(profileId);
+        if (!seed) {
+          res.status(404).json({ error: "Not found" });
+          return;
+        }
+        res.status(200).json(seed);
         return;
       }
-      res.status(200).json(JSON.parse(got.result));
+      res.status(200).json(stored);
       return;
     }
 
@@ -67,26 +52,18 @@ module.exports = async function handler(req, res) {
         return;
       }
 
-      var existing = await redisCommand(["GET", accountKey(profileId)]);
-      if (existing && existing.result != null) {
-        var stored = JSON.parse(existing.result);
-        if (stored.updatedAt && incoming.updatedAt && incoming.updatedAt < stored.updatedAt) {
-          res.status(200).json(stored);
+      var existing = await accountStore.getAccount(profileId);
+      if (existing) {
+        var resetChanged = incoming.accountResetToken &&
+          existing.accountResetToken !== incoming.accountResetToken;
+        if (!resetChanged && existing.updatedAt && incoming.updatedAt && incoming.updatedAt < existing.updatedAt) {
+          res.status(200).json(existing);
           return;
         }
       }
 
-      var toStore = {
-        balanceUsdBook: Number(incoming.balanceUsdBook) || 0,
-        balanceUsd: Number(incoming.balanceUsd) || 0,
-        balanceBtcHoldings: incoming.balanceBtcHoldings != null ? Number(incoming.balanceBtcHoldings) : null,
-        transactions: Array.isArray(incoming.transactions) ? incoming.transactions : [],
-        stateVersion: incoming.stateVersion || "1",
-        updatedAt: incoming.updatedAt || Date.now()
-      };
-
-      await redisCommand(["SET", accountKey(profileId), JSON.stringify(toStore)]);
-      res.status(200).json(toStore);
+      var saved = await accountStore.saveAccount(profileId, incoming);
+      res.status(200).json(saved);
       return;
     }
 

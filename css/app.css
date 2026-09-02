@@ -768,6 +768,10 @@ body.wallet-modal-open {
   margin: 0 0 0.75rem;
 }
 
+.wallet-modal-title.text-red-400 {
+  color: #f87171;
+}
+
 .wallet-modal-body {
   margin: 0 0 1rem;
   line-height: 1.6;
@@ -1315,6 +1319,25 @@ body.balance-hidden [data-balance-usd],
 body.balance-hidden [data-balance-btc] {
   filter: blur(6px);
   user-select: none;
+}
+
+body.balance-loading [data-balance-usd],
+body.balance-loading [data-balance-btc],
+body.balance-loading #withdraw-available,
+body.balance-loading #dash-stat-deposit,
+body.balance-loading #dash-stat-withdraw,
+body.balance-loading #dash-stat-profit,
+body.balance-loading #dash-stat-profit-desktop,
+body.balance-loading #dash-available-amt,
+body.balance-loading .dash-notify-panel__balance {
+  visibility: hidden;
+}
+
+body.balance-loading .dash-balance-card__amount,
+body.balance-loading .dash-balance-card__btc,
+body.balance-loading .balance-amount-usd,
+body.balance-loading .balance-amount-btc {
+  visibility: hidden;
 }
 
 /* Mobile metrics grid */

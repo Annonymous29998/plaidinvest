@@ -145,6 +145,18 @@ svg {
   font-size: 0.875rem;
 }
 
+.app-table td.text-red-400 {
+  color: #f87171;
+}
+
+.app-table td.text-green-400 {
+  color: #4ade80;
+}
+
+.app-table td.text-gray-300 {
+  color: #d1d5db;
+}
+
 .app-table tbody tr:hover td {
   background: #1a2332;
 }
