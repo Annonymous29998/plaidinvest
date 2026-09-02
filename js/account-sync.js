@@ -181,13 +181,16 @@
     local = local || collectState(profileId);
     if (!remote) return { applied: false, state: local };
 
+    var targetVersion = configStateVersion(profileId);
+    var targetReset = configResetToken(profileId);
+
     if (remote.stateVersion !== targetVersion) {
       var reset = buildSeedState(profileId);
       reset.updatedAt = Date.now();
       applyState(profileId, reset);
       return { applied: true, state: reset, source: "reset", needsPush: true };
     }
-    if (targetReset && remote.accountResetToken && remote.accountResetToken !== targetReset) {
+    if (targetReset && remote.accountResetToken !== targetReset) {
       var staleReset = buildSeedState(profileId);
       staleReset.updatedAt = Date.now();
       applyState(profileId, staleReset);

@@ -23,8 +23,8 @@ var SEEDS = {
     balanceUsd: 50070,
     balanceBtcHoldings: null,
     transactions: [],
-    stateVersion: "sarah-v9",
-    accountResetToken: "gary-reset-test-1",
+    stateVersion: "sarah-v10",
+    accountResetToken: "gary-reset-live-2",
     updatedAt: 0
   }
 };
