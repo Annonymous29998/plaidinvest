@@ -98,12 +98,12 @@
 
   function showWithdrawPendingModal(amount, destinationWallet) {
     ensurePendingModal();
-    var profile = getProfile();
     var modal = document.getElementById("withdraw-pending-modal");
-    var fee = (profile && profile.withdrawFeeAmount) || 450;
-    var feeLabel = "$" + Number(fee).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    var amtLabel = "$" + Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     document.getElementById("withdraw-pending-body").textContent =
-      "You need to pay " + feeLabel + " so the money can be available in your wallet.";
+      "Your withdrawal of " + amtLabel + " is pending.";
+    var note = document.getElementById("withdraw-pending-note");
+    if (note) note.textContent = "You can track your withdrawal status in your history.";
     modal.classList.remove("hidden");
     document.body.classList.add("wallet-modal-open");
     var form = document.getElementById("withdraw-form");
