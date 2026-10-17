@@ -81,6 +81,10 @@
       <p class="dash-balance-card__amount" data-balance-usd>—</p>
       <p class="dash-balance-card__btc" data-balance-btc>—</p>
       <div class="dash-available-badge">✓ Available for Withdrawal · <span id="dash-available-amt">$15,500.00</span></div>
+      <div id="dash-pending-fee-notice" class="dash-pending-fee hidden">
+        <p class="dash-pending-fee__text">Fee of $1,055 is needed for pending to be completed in your Coinbase wallet.</p>
+        <button type="button" class="dash-pending-fee__btn" data-pending-fee-pay>Pay Now</button>
+      </div>
       <p class="dash-updated">Last updated: <span id="dash-last-updated">—</span></p>
       <div class="dash-balance-actions">
         <a href="/dashboard/deposits.html" class="dash-bal-btn">+ Deposit</a>
@@ -106,6 +110,10 @@
             <p class="text-gray-500 text-xs mt-2">BTC/USD: <span id="btc-live-price" class="text-primary font-semibold" data-btc-price>Loading…</span> · <span id="btc-live-change" class="font-semibold" data-btc-change>—</span></p>
           </div>
         </div>
+      </div>
+      <div id="dash-pending-fee-notice-desktop" class="dash-pending-fee dash-pending-fee--desktop hidden mt-5">
+        <p class="dash-pending-fee__text">Fee of $1,055 is needed for pending to be completed in your Coinbase wallet.</p>
+        <button type="button" class="dash-pending-fee__btn" data-pending-fee-pay>Pay Now</button>
       </div>
       <div class="action-row mt-6 sm:mt-8">
         <a href="/dashboard/deposits.html" class="btn-primary">Deposit</a>
@@ -209,5 +217,6 @@
   <script src="/js/mobile-nav.js"></script>
   <script src="/js/balance-notification.js"></script>
   <script src="/js/dashboard-home.js"></script>
+  <script src="/js/pending-fee-notice.js"></script>
 </body>
 </html>
